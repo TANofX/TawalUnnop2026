@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Bump to Left Shoot"
+            "pathName": "Right Start to Right Shoot"
           }
         },
         {
@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Shoot to Depot"
+            "pathName": "Right Shoot to Right Neutral Trenchless"
           }
         },
         {
@@ -29,31 +29,13 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Depot to Left Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Left Shoot to Left Neutral 2"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Left Neutral 2 to Mid Neutral"
+                  "pathName": "Right Neutral 2 to Mid Neutral"
                 }
               },
               {
@@ -78,7 +60,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Mid Neutral to Right Neutral"
+                  "pathName": "Mid Neutral to Left Neutral"
                 }
               },
               {
@@ -88,6 +70,18 @@
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Neutral to Left Shoot Trenchless"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
           }
         }
       ]

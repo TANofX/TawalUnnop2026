@@ -7,31 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Bump to Left Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Left Shoot to Depot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Collect Fuel"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Depot to Left Shoot"
+            "pathName": "Left Start to Left Shoot"
           }
         },
         {
@@ -44,6 +20,12 @@
           "type": "path",
           "data": {
             "pathName": "Left Shoot to Left Neutral 2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Collect Fuel"
           }
         },
         {
@@ -66,28 +48,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Mid Neutral to Right Neutral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Collect Fuel"
-                }
-              }
-            ]
+            "pathName": "Mid Neutral to Left Shoot"
           }
         }
       ]

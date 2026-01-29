@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Bump to Left Shoot"
+            "pathName": "Left Start to Left Shoot"
           }
         },
         {
@@ -19,31 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Shoot to Depot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Collect Fuel"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Depot to Left Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Left Shoot to Left Neutral 2"
+            "pathName": "Left Shoot to Left Neutral Trenchless"
           }
         },
         {
@@ -88,6 +64,18 @@
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Neutral to Left Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
           }
         }
       ]
