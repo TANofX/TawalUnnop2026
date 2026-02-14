@@ -68,7 +68,6 @@ public final class Constants {
   public static final Rectangle2d BLUE_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(158.61 - 13.0), Units.inchesToMeters(49.84)), new Translation2d(Units.inchesToMeters(205.61 + 13.0), Units.inchesToMeters(267.85)));
   //Bump Field Constants manipulated to work with 45 degree robot lock^^ (keep when merging branches plz)
   
-  public static final double HOOD_ANGLE = 60;
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.FIELD)
   public @interface CanId {

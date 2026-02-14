@@ -111,16 +111,24 @@ public class FireControl extends SubsystemBase{
         return d;
     } 
 
+    /**
+     * @return The chassis speed of the robot
+     */
     private ChassisSpeeds getChassisSpeed() {
         return speedSupplier.get();
     }
 
+    /**
+     * @return The time of how long fuel is in the air
+     */
     private double getAirTime() {
         double shootervx = (getShooterRpm() * 2 * Math.PI) / 60.0;
         double time = getDistanceFromTarget() / shootervx;
         return time;
     }
-
+    /**
+     * @return The offset position of robot for target calculations
+     */
     private Pose2d getFuturePos() {
         Pose2d robotPos = robotSupplier.get();
         ChassisSpeeds chassisSpeed = speedSupplier.get();
@@ -167,17 +175,11 @@ public class FireControl extends SubsystemBase{
         currentChassisSpeeds = getChassisSpeed();
     }
 
+    /**
+     * @return The RPM needed for the shooter to hit the hub based off distance of target
+     */
     public double getShooterRpm() {
         return rpmFromDistance.get(getDistanceFromTarget());
-    }
-
-    /**
-     * @return The offset needed to aim while moving
-     */
-    public double getOffset() { //TODO
-        double offset;
-        offset = 0.0;
-        return offset;
     }
 
     /**
