@@ -6,12 +6,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.opencv.core.Rect;
+
 import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -38,6 +41,31 @@ public final class Constants {
       throw new RuntimeException(e);
     }
   }
+
+  public static final Distance X_CLEAR_OFFSET = Distance.ofBaseUnits(Math.abs(
+                                                                              apriltagLayout.getTagPose(12).get().getMeasureX().in(Meter)
+                                                                              - apriltagLayout.getTagPose(13).get().getMeasureX().in(Meter)) / 2.0,
+                                                                    Meter);
+
+  public static final Distance Y_CLEAR_OFFSET = Distance.ofBaseUnits(Math.abs(
+                                                                              apriltagLayout.getTagPose(7).get().getMeasureY().in(Meter)
+                                                                              - apriltagLayout.getTagPose(8).get().getMeasureY().in(Meter)) / 2.0,
+                                                                    Meter);
+
+  public static final Pose2d HUB_RED = new Pose2d(apriltagLayout.getTagPose(5).get().getMeasureX(), apriltagLayout.getTagPose(9).get().getMeasureY(), new Rotation2d(0.0));
+  public static final Pose2d HUB_BLUE = new Pose2d(apriltagLayout.getTagPose(18).get().getMeasureX(), apriltagLayout.getTagPose(26).get().getMeasureY(), new Rotation2d(0.0));
+
+  public static final Pose2d RED_FEED_TOP = new Pose2d(apriltagLayout.getTagPose(7).get().getMeasureX().plus(X_CLEAR_OFFSET), apriltagLayout.getTagPose(7).get().getMeasureY().plus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+  public static final Pose2d RED_FEED_BOT = new Pose2d(apriltagLayout.getTagPose(12).get().getMeasureX().plus(X_CLEAR_OFFSET), apriltagLayout.getTagPose(12).get().getMeasureY().minus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+  
+  public static final Pose2d BLUE_FEED_TOP = new Pose2d(apriltagLayout.getTagPose(28).get().getMeasureX().minus(X_CLEAR_OFFSET), apriltagLayout.getTagPose(28).get().getMeasureY().plus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+  public static final Pose2d BLUE_FEED_BOT = new Pose2d(apriltagLayout.getTagPose(23).get().getMeasureX().minus(X_CLEAR_OFFSET), apriltagLayout.getTagPose(23).get().getMeasureY().minus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+  
+  public static final Rectangle2d BLUE_ALLIANCE_ZONE = new Rectangle2d(new Translation2d(0.0, 0.0), new Translation2d(Units.inchesToMeters(156.61), Units.inchesToMeters(317.69)));
+  public static final Rectangle2d RED_ALLIANCE_ZONE = new Rectangle2d(new Translation2d(Units.inchesToMeters(494.61),0.0), new Translation2d(Units.inchesToMeters(651.22), Units.inchesToMeters(317.69)));
+  
+  public static final Rectangle2d RED_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(445.61), 49.84), new Translation2d(Units.inchesToMeters(492.61), 267.85));
+  public static final Rectangle2d BLUE_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(158.61), 49.84), new Translation2d(Units.inchesToMeters(205.61), Units.inchesToMeters(267.85)));
   /**
    * Annotate CAN ID fields with this annotation so we can detect duplicates in a
    * unit test
@@ -161,6 +189,4 @@ public final class Constants {
     }
   }
 
-  // Class to access the coordinates of the coral on the field.
-  
 }

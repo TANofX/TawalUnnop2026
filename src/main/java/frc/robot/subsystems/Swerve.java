@@ -167,7 +167,7 @@ public final class Swerve extends AdvancedSubsystem {
       DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
     }
     SmartDashboard.putData("Check Swerve", systemCheckCommand());
-  }
+  } 
 
   public Command goToPoseCommand(Pose2d targetPose, Rotation2d approachAngle) {
     Rotation2d targetRotation = targetPose.getRotation();
