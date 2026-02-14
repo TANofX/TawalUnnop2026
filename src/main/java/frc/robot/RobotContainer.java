@@ -11,7 +11,6 @@ import frc.lib.input.controllers.XboxControllerWrapper;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.SwerveDriveWithGamepad;
 import frc.robot.subsystems.*;
-import frc.robot.subsystems.FireControl;
 
 
 public class RobotContainer {
@@ -62,11 +61,6 @@ public class RobotContainer {
     driver.Y().onTrue(intake.putDownIntake());
     driver.DUp().whileTrue(funnyName.shootFuel());
     driver.DDown().whileTrue(funnyName.clearFuel());
-  /*   
-        }, shooter))).andThen(new Shoot().andThen(Commands.waitSeconds(0.5).andThen(Commands.runOnce(() -> {
-          shooter.stopMotors();
-
-        }))))); */
   
   }
 }
