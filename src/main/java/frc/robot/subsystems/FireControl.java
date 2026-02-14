@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Supplier;
-import java.util.zip.DataFormatException;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -111,12 +111,27 @@ public class FireControl extends SubsystemBase{
         return d;
     } 
 
-    //Checks every cycle for the correct target loctation, distance, and robot sped
-    public void periodic() { 
-        target = getClosestTarget(robotSupplier.get());
-        currentTarget = getTargetRotation(robotSupplier.get(), target);
-        distanceFromTarget = getDistance(target, robotSupplier.get());
-        currentChassisSpeeds = speedSupplier.get();
+    private ChassisSpeeds getChassisSpeed() {
+        return speedSupplier.get();
+    }
+
+    private double getAirTime() {
+        double shootervx = (getShooterRpm() * 2 * Math.PI) / 60.0;
+        double time = getDistanceFromTarget() / shootervx;
+        return time;
+    }
+
+    private Pose2d getFuturePos() {
+        Pose2d robotPos = robotSupplier.get();
+        ChassisSpeeds chassisSpeed = speedSupplier.get();
+        double time = getAirTime();
+        double futureX = robotPos.getX() +  (chassisSpeed.vxMetersPerSecond * time);
+        double futureY = robotPos.getY() + (chassisSpeed.vyMetersPerSecond * time);
+        double futureAngleInRads = robotPos.getRotation().getRadians() + (chassisSpeed.omegaRadiansPerSecond * time);
+        
+        Transform2d futurePos = new Transform2d(futureX, futureY, new Rotation2d(futureAngleInRads));
+        
+        return robotPos.plus(futurePos);
     }   
 
     private void readCsv(String filePath) {
@@ -141,6 +156,15 @@ public class FireControl extends SubsystemBase{
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    //Checks every cycle for the correct target loctation, distance, and robot sped
+    public void periodic() { 
+        Pose2d futurePos = getFuturePos();
+        target = getClosestTarget(futurePos);
+        currentTarget = getTargetRotation(futurePos, target);
+        distanceFromTarget = getDistance(target, futurePos);
+        currentChassisSpeeds = getChassisSpeed();
     }
 
     public double getShooterRpm() {
