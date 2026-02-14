@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meter;
+
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,21 +14,21 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rectangle2d;
-import edu.wpi.first.math.geometry.Rectangle2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 
 public final class Constants {
   public static final String CARNIVORE_BUS_NAME = "Sonic";
   public static final AprilTagFieldLayout apriltagLayout;
   public static final Translation2d fieldSize;
-  public static final Rectangle2d RED_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(445.61 - 13.0), Units.inchesToMeters(49.84)), new Translation2d(Units.inchesToMeters(492.61 + 13.0), Units.inchesToMeters(267.85)));
-  public static final Rectangle2d BLUE_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(158.61 - 13.0), Units.inchesToMeters(49.84)), new Translation2d(Units.inchesToMeters(205.61 + 13.0), Units.inchesToMeters(267.85)));
-  //Bump Field Constants manipulated to work with 45 degree robot lock^^ (keep when merging branches plz)
+  
   static {
     try {
       apriltagLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2026RebuiltAndymark.m_resourceFile);
@@ -62,12 +64,9 @@ public final class Constants {
   public static final Rectangle2d BLUE_ALLIANCE_ZONE = new Rectangle2d(new Translation2d(0.0, 0.0), new Translation2d(Units.inchesToMeters(156.61), Units.inchesToMeters(317.69)));
   public static final Rectangle2d RED_ALLIANCE_ZONE = new Rectangle2d(new Translation2d(Units.inchesToMeters(494.61),0.0), new Translation2d(Units.inchesToMeters(651.22), Units.inchesToMeters(317.69)));
   
-  public static final Rectangle2d RED_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(445.61), 49.84), new Translation2d(Units.inchesToMeters(492.61), 267.85));
-  public static final Rectangle2d BLUE_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(158.61), 49.84), new Translation2d(Units.inchesToMeters(205.61), Units.inchesToMeters(267.85)));
-  /**
-   * Annotate CAN ID fields with this annotation so we can detect duplicates in a
-   * unit test
-   */
+  public static final Rectangle2d RED_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(445.61 - 13.0), Units.inchesToMeters(49.84)), new Translation2d(Units.inchesToMeters(492.61 + 13.0), Units.inchesToMeters(267.85)));
+  public static final Rectangle2d BLUE_ALLIANCE_BUMP = new Rectangle2d(new Translation2d(Units.inchesToMeters(158.61 - 13.0), Units.inchesToMeters(49.84)), new Translation2d(Units.inchesToMeters(205.61 + 13.0), Units.inchesToMeters(267.85)));
+  //Bump Field Constants manipulated to work with 45 degree robot lock^^ (keep when merging branches plz)
   
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.FIELD)
@@ -99,7 +98,7 @@ public final class Constants {
   }
   public static final class Joystick {
 
-    //PID Constants for bump angle constraint
+    //TODO PID Constants for bump angle constraint
     public static final double kP = 2;
     public static final double kI = 0;
     public static final double kD = 0;
@@ -267,7 +266,6 @@ public final class Constants {
       public static final double TOP_kA = 0.0;        //what values
       public static final double BOTTOM_kA = 0.0;
     }
-
     }
   
   
