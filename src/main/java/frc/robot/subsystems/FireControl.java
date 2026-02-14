@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -121,9 +122,9 @@ public class FireControl extends SubsystemBase{
     /**
      * @return The time of how long fuel is in the air
      */
-    private double getAirTime() {
-        double shootervx = (getShooterRpm() * 2 * Math.PI) / 60.0;
-        double time = getDistanceFromTarget() / shootervx;
+    private double getAirTime(Pose2d robotPos) {
+        double shootervx = ((getShooterRpm() * 2 * Math.PI) / 60.0) * Math.cos(Constants.HOOD_ANGLE);
+        double time = getClosestTarget(robotPos).getMeasureX().div(shootervx).magnitude();
         return time;
     }
     /**
@@ -132,14 +133,14 @@ public class FireControl extends SubsystemBase{
     private Pose2d getFuturePos() {
         Pose2d robotPos = robotSupplier.get();
         ChassisSpeeds chassisSpeed = speedSupplier.get();
-        double time = getAirTime();
-        double futureX = robotPos.getX() +  (chassisSpeed.vxMetersPerSecond * time);
-        double futureY = robotPos.getY() + (chassisSpeed.vyMetersPerSecond * time);
-        double futureAngleInRads = robotPos.getRotation().getRadians() + (chassisSpeed.omegaRadiansPerSecond * time);
+        double time = getAirTime(robotPos);
+        double futureX = chassisSpeed.vxMetersPerSecond * time;
+        double futureY = chassisSpeed.vyMetersPerSecond * time;
+        double futureAngleInRads = chassisSpeed.omegaRadiansPerSecond * time;
         
-        Transform2d futurePos = new Transform2d(futureX, futureY, new Rotation2d(futureAngleInRads));
+        Twist2d futurePos = new Twist2d(futureX, futureY, futureAngleInRads);
         
-        return robotPos.plus(futurePos);
+        return robotPos.exp(futurePos);
     }   
 
     private void readCsv(String filePath) {
