@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.input.controllers.XboxControllerWrapper;
 import edu.wpi.first.wpilibj2.command.*;
@@ -29,6 +31,8 @@ public class RobotContainer {
   // Other Hardware
   public static final PowerDistribution powerDistribution = new PowerDistribution();
 
+  private final SendableChooser<Command> autoChooser;
+
   //Register Named PathPlanner Commands
   // NamedCommands.registerCommand("Shoot", );
   // NamedCommands.registerCommand("Collect Fuel");
@@ -36,9 +40,7 @@ public class RobotContainer {
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
 
-  public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
-  }
+ 
 
   public RobotContainer() {
     SmartDashboard.putData(swerve.zeroModulesCommand());
@@ -62,6 +64,24 @@ public class RobotContainer {
               Rotation2d.fromDegrees(90)
       )));
     }, swerve));
+
+    boolean isCompetition = true;
+
+    // Build an auto chooser. This will use Commands.none() as the default option.
+    // As an example, this will only show autos that start with "comp" while at
+    // competition as defined by the programmer
+    autoChooser = AutoBuilder.buildAutoChooserWithOptionsModifier(
+      (stream) -> isCompetition
+        ? stream.filter(auto -> auto.getName().startsWith("comp"))
+        : stream
+    );
+
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+  }
+
+  public Command getAutonomousCommand() {
+    return autoChooser.getSelected();
+  }
 
 
     // SmartDashboard.putData(intake.getIntakePivotTuner());
@@ -88,9 +108,7 @@ public class RobotContainer {
     // NamedCommands.registerCommand("", );
     
     //PPHolonomicDriveController.setRotationTargetOverride(this::overrideAngle);
-  }
   
-
   private void configureButtonBindings() {    
         //Commands.waitSeconds(.5).andThen(new Shoot().andThen(Commands.waitSeconds(0.5).andThen(Commands.runOnce(() -> {
           //shooter.stopMotors();

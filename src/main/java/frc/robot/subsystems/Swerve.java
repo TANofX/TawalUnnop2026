@@ -164,7 +164,7 @@ public final class Swerve extends AdvancedSubsystem {
             }
             return false;
           },
-          modules);
+          this);
     } catch (Exception e) {
       DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
     }
