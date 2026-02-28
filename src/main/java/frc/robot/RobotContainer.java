@@ -3,6 +3,8 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -26,6 +28,10 @@ public class RobotContainer {
   // public static final LEDs LEDs = new LEDs();
   // Other Hardware
   public static final PowerDistribution powerDistribution = new PowerDistribution();
+
+  //Register Named PathPlanner Commands
+  // NamedCommands.registerCommand("Shoot", );
+  // NamedCommands.registerCommand("Collect Fuel");
 
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();

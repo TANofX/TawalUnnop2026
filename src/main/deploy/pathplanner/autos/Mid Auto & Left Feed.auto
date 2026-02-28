@@ -37,14 +37,14 @@
                 "data": {
                   "name": "Collect Fuel"
                 }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
           }
         },
         {

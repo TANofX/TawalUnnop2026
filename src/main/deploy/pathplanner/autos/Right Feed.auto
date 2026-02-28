@@ -5,27 +5,28 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Right Start to Right Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Right Start to Right Shoot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Right Shoot to Right Neutral 2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Collect Fuel"
           }
         },
         {
@@ -43,14 +44,14 @@
                 "data": {
                   "name": "Collect Fuel"
                 }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
           }
         },
         {
