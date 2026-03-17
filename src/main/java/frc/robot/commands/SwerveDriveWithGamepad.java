@@ -1,8 +1,8 @@
 package frc.robot.commands;
 
 import java.util.Optional;
-import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -11,40 +11,28 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.subsystems.Swerve;
 
 public class SwerveDriveWithGamepad extends Command {
   private final SlewRateLimiter xVelLimiter;
   private final SlewRateLimiter yVelLimiter;
   private final SlewRateLimiter angularVelLimiter;
-  private DoubleSupplier heightFraction;
+  private final PIDController pidController;
+  private final Swerve swerve;
   private static double speedSet = 1;
 
-
-  public SwerveDriveWithGamepad(boolean aimAtGamePiece) {
+  public SwerveDriveWithGamepad(Swerve swerve) {
     this.xVelLimiter = new SlewRateLimiter(Constants.Swerve.TELEOP_MAX_ACCELERATION);
     this.yVelLimiter = new SlewRateLimiter(Constants.Swerve.TELEOP_MAX_ACCELERATION);
     this.angularVelLimiter = new SlewRateLimiter(Constants.Swerve.TELEOP_MAX_ANGULAR_ACCELERATION);
-    heightFraction = () -> {
-      return 0.0;
-    };
-
+    this.pidController = new PIDController(Constants.Joystick.kP, Constants.Joystick.kI, Constants.Joystick.kD);
+    this.swerve = swerve;
     addRequirements(RobotContainer.swerve);
-
-  }
-
-  public SwerveDriveWithGamepad(DoubleSupplier heightFrac) {
-    this(false);
-    heightFraction = heightFrac;
   }
 
   @Override
   public void initialize() {
-    // ChassisSpeeds currentSpeeds = RobotContainer.swerve.getCurrentSpeeds();
-    // Translation2d hack = new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond)
-    //     .rotateBy(RobotContainer.swerve.getPose().getRotation());
-    // this.xVelLimiter.reset(hack.getX());
-    // this.yVelLimiter.reset(hack.getY());
-    // this.angularVelLimiter.reset(currentSpeeds.omegaRadiansPerSecond);
+
     this.xVelLimiter.reset(0);
     this.yVelLimiter.reset(0);
     this.angularVelLimiter.reset(0);
@@ -54,32 +42,51 @@ public class SwerveDriveWithGamepad extends Command {
 
   @Override
   public void execute() {
-    speedSet = SmartDashboard.getNumber("Speed Dial", 0);
-    double maxSpeedForChild = speedSet * (0.25 + 0.75 * (1 - heightFraction.getAsDouble()));
 
+    double rot;
+    double angularVel;
+    speedSet = SmartDashboard.getNumber("Speed Dial", 0);
+    double maxSpeedForChild = speedSet;
     double x = -RobotContainer.driver.getLeftY() * maxSpeedForChild;
+
     x = Math.copySign(x * x, x);
-    double y = -RobotContainer.driver.getLeftX()* maxSpeedForChild;
+    double y = -RobotContainer.driver.getLeftX() * maxSpeedForChild;
+
     y = Math.copySign(y * y, y);
+    SmartDashboard.putNumber("Swerve/X", x);
+    SmartDashboard.putNumber("Swerve/Y", y);
     Optional<Alliance> currentAlliance = DriverStation.getAlliance();
+
     if (currentAlliance.isPresent() && currentAlliance.get() == Alliance.Red) {
       x = -1 * x;
       y = -1 * y;
     }
-    double rot;
+
+    if (Constants.RED_ALLIANCE_BUMP.contains(swerve.getPose().getTranslation())
+        || Constants.BLUE_ALLIANCE_BUMP.contains(swerve.getPose().getTranslation())) {
+      // Rotation lock: 45 degrees for the bump
+      double currentAngleDeg = swerve.getPose().getRotation().getDegrees();
+      double nearest45Deg = Math.round(currentAngleDeg / 45.0) * 45.0;
+      double target45Deg = nearest45Deg;
+      SmartDashboard.putNumber("Joystick/nearest45", nearest45Deg);
+      SmartDashboard.putNumber("Joystick/CurrentAngle", currentAngleDeg);
+
+      rot = pidController.calculate(currentAngleDeg, target45Deg); // TODO tune 45 angle lock PID
+
+      rot = Math.copySign(Math.min(Math.abs(rot), Constants.Swerve.TELEOP_MAX_ANGULAR_VELOCITY), rot);
+      angularVel = this.angularVelLimiter.calculate(rot);
+
+    } else {
       rot = -RobotContainer.driver.getRightX() * maxSpeedForChild;
       rot = Math.copySign(rot * rot, rot);
+      double targetAngularVel = rot * Constants.Swerve.TELEOP_MAX_ANGULAR_VELOCITY;
+      angularVel = this.angularVelLimiter.calculate(targetAngularVel);
+    }
 
-    double targetAngularVel = rot * Constants.Swerve.TELEOP_MAX_ANGULAR_VELOCITY;
     boolean stop = x == 0 && y == 0 && rot == 0;
-
-    // Only take over game piece aim if driver is not rotating and intake is
-    // spinning (we don't have
-    // a game piece in intake)
 
     double xVel = this.xVelLimiter.calculate(x * Constants.Swerve.TELEOP_MAX_VELOCITY);
     double yVel = this.yVelLimiter.calculate(y * Constants.Swerve.TELEOP_MAX_VELOCITY);
-    double angularVel = this.angularVelLimiter.calculate(targetAngularVel);
 
     SmartDashboard.putNumber("Joystick/X", xVel);
     SmartDashboard.putNumber("Joystick/Y", yVel);

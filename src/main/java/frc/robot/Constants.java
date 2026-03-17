@@ -1,31 +1,42 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Rotation;
+import static edu.wpi.first.units.Units.Meter;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
+
+import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Rectangle2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 
 public final class Constants {
-  public static final String CARNIVORE_BUS_NAME = "rio";
+  public static final String CARNIVORE_BUS_NAME = "Sonic";
   public static final AprilTagFieldLayout apriltagLayout;
   public static final Translation2d fieldSize;
-
+  public static final Rectangle2d RED_ALLIANCE_BUMP = new Rectangle2d(
+      new Translation2d(Units.inchesToMeters(445.61 - 13.0), Units.inchesToMeters(49.84)),
+      new Translation2d(Units.inchesToMeters(492.61 + 13.0), Units.inchesToMeters(267.85)));
+  public static final Rectangle2d BLUE_ALLIANCE_BUMP = new Rectangle2d(
+      new Translation2d(Units.inchesToMeters(158.61 - 13.0), Units.inchesToMeters(49.84)),
+      new Translation2d(Units.inchesToMeters(205.61 + 13.0), Units.inchesToMeters(267.85)));
+  // Bump Field Constants manipulated to work with 45 degree robot lock^^ (keep when merging branches plz)
   static {
     try {
       apriltagLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2026RebuiltAndymark.m_resourceFile);
@@ -39,10 +50,51 @@ public final class Constants {
     }
   }
 
+  public static final Distance X_CLEAR_OFFSET = Distance.ofBaseUnits(Math.abs(
+      apriltagLayout.getTagPose(12).get().getMeasureX().in(Meter)
+          - apriltagLayout.getTagPose(13).get().getMeasureX().in(Meter))
+      / 2.0,
+      Meter);
+
+  public static final Distance Y_CLEAR_OFFSET = Distance.ofBaseUnits(Math.abs(
+      apriltagLayout.getTagPose(7).get().getMeasureY().in(Meter)
+          - apriltagLayout.getTagPose(8).get().getMeasureY().in(Meter))
+      / 2.0,
+      Meter);
+
+  public static final Pose2d HUB_RED = new Pose2d(apriltagLayout.getTagPose(5).get().getMeasureX(),
+      apriltagLayout.getTagPose(9).get().getMeasureY(), new Rotation2d(0.0));
+  public static final Pose2d HUB_BLUE = new Pose2d(apriltagLayout.getTagPose(18).get().getMeasureX(),
+      apriltagLayout.getTagPose(26).get().getMeasureY(), new Rotation2d(0.0));
+
+  public static final Pose2d RED_FEED_TOP = new Pose2d(
+      apriltagLayout.getTagPose(7).get().getMeasureX().plus(X_CLEAR_OFFSET),
+      apriltagLayout.getTagPose(7).get().getMeasureY().plus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+  public static final Pose2d RED_FEED_BOT = new Pose2d(
+      apriltagLayout.getTagPose(12).get().getMeasureX().plus(X_CLEAR_OFFSET),
+      apriltagLayout.getTagPose(12).get().getMeasureY().minus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+
+  public static final Pose2d BLUE_FEED_TOP = new Pose2d(
+      apriltagLayout.getTagPose(28).get().getMeasureX().minus(X_CLEAR_OFFSET),
+      apriltagLayout.getTagPose(28).get().getMeasureY().plus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+  public static final Pose2d BLUE_FEED_BOT = new Pose2d(
+      apriltagLayout.getTagPose(23).get().getMeasureX().minus(X_CLEAR_OFFSET),
+      apriltagLayout.getTagPose(23).get().getMeasureY().minus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
+
+  public static final Rectangle2d BLUE_ALLIANCE_ZONE = new Rectangle2d(new Translation2d(0.0, 0.0),
+      new Translation2d(Units.inchesToMeters(182.11), Units.inchesToMeters(317.69)));
+  public static final Rectangle2d RED_ALLIANCE_ZONE = new Rectangle2d(
+      new Translation2d(Units.inchesToMeters(469.11), 0.0),
+      new Translation2d(Units.inchesToMeters(651.22), Units.inchesToMeters(317.69)));
+
+  
+  public static final double CALISPEED = .2;
+
   /**
    * Annotate CAN ID fields with this annotation so we can detect duplicates in a
    * unit test
    */
+
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.FIELD)
   public @interface CanId {
@@ -72,48 +124,130 @@ public final class Constants {
     }
   }
 
-  public static final class Elevator {
-    
-    @CanId(CanId.Type.MOTOR)
-    public static final int MOTOR_ID = 30;
+  public static final class Joystick {
 
-    public static final double P = 0.0005;
-    public static final double I = 0.00;
-    public static final double D = 0.0;
-    public static final double FF = 0.0;
+    // TODO PID Constants for bump angle constraint
+    public static final double kP = 0.04;
+    public static final double kI = 0;
+    public static final double kD = 0;
 
-    public static final class POSITION_HOLD {
-      public static final double P = 0.2;
-      public static final double I = 0.0;
-      public static final double D = 0.05;
-      public static final double FF = 0;
-      public static final double THRESHOLD = 0.02;
-    }
-
-    public static final double METERS_PER_MOTOR_REVOLUTION =  Units.inchesToMeters(1.0 / 4.0) * 1.0083601831021498;
-    public static final double ELEVATOR_MASS = Units.lbsToKilograms(20.0);
-    public static final double GEAR_RATIO = 1.0;
-    public static final double MIN_HEIGHT_METERS = 0.0;
-    public static final double MAX_HEIGHT_METERS = Units.inchesToMeters(-58.0);
-    public static final double STARTING_HEIGHT_METERS = MIN_HEIGHT_METERS
-        + (MIN_HEIGHT_METERS + MAX_HEIGHT_METERS) / 2.0;
-
-    public static final double LEVEL1_HEIGHT = Units.inchesToMeters(0.5);
-    public static final double LEVEL2_HEIGHT = Units.inchesToMeters(33.72-24.0); // Set correct height
-    public static final double LEVEL3_HEIGHT = Units.inchesToMeters(51.59-24.0);
-    public static final double LEVEL4_HEIGHT = 1.455;
-    public static final double MAX_ACCELERATION = 18000.0;
-    public static final double MAX_VELOCITY = 12000.0;
-  };
+  }
 
   public static final class LEDs {
     public static final int PWM_PIN = 0;
     public static final int LENGTH = 150;
   }
+  public static final class Turret {
+    public static final int TURRET_MOTOR_ID = 50;
+    public static final int Turret_HALL_EFFECT_ID = 0; //TODO get Hall effect sensor id?
+    public static final double VOLTAGE = 10.0;
+    public static final int CURRENT = 50;
+    public static final double TURRET_GEAR_RATIO_IO = 20 * 200 / 28;
+
+    public static final double TURRET_kV = 0.0010522;
+    public static final double TURRET_kA = 0.00010721;
+    public static final double TURRET_kS = 0.017925;
+    
+    public static final double TURRET_P = 0.24301;
+    public static final double TURRET_I = 0.0;
+    public static final double TURRET_D = 0.0;
+
+    public static final Transform3d ROBOT_TO_SHOOTER = new Transform3d(
+                                                          new Translation3d(Units.inchesToMeters(-7.486), 0.0, Units.inchesToMeters(17.938)),
+                                                          new Rotation3d(0.0, 0.0, 0.0)
+                                                          );
+  }
+
+  public static final class Vision {
+    public static final Transform3d robotToHeart = new Transform3d(
+                                                        new Translation3d( Units.inchesToMeters(-18.344), //-13.492 X
+                                                                           Units.inchesToMeters(15.621), //9.921, 11.574 Y
+                                                                           Units.inchesToMeters(21.5)),
+                                                        new Rotation3d(0.0, 
+                                                                        Units.degreesToRadians(12.0), 
+                                                                        Units.degreesToRadians(110.5))                                                     
+                                                        );
+
+    public static final Transform3d robotToDiamond = new Transform3d(
+                                                        new Translation3d( Units.inchesToMeters(2.60), //-7.486
+                                                                           Units.inchesToMeters(15.7), 
+                                                                           Units.inchesToMeters(21.5)),
+                                                        new Rotation3d(0.0, 
+                                                                        Units.degreesToRadians(12), 
+                                                                        Units.degreesToRadians(66.80))                                                     
+                                                        );
+
+    public static final Transform3d robotToClub = new Transform3d( 
+                                                        new Translation3d( Units.inchesToMeters(2.60), //5.486, 7.486
+                                                                           Units.inchesToMeters(-15.7), //-9.921 //-21/545
+                                                                           Units.inchesToMeters(21.5)),
+                                                        new Rotation3d(0.0, //0.0 
+                                                                        Units.degreesToRadians(12.0), //10.0
+                                                                        Units.degreesToRadians(-70.25))   //-67.269                                                  
+                                                        );
+
+    public static final Transform3d robotToArudcam = new Transform3d(
+                                                        new Translation3d( Units.inchesToMeters(-17.743), 
+                                                                           Units.inchesToMeters(-15.714), 
+                                                                           Units.inchesToMeters(21.5)),
+                                                        new Rotation3d(0.0, 
+                                                                        Units.degreesToRadians(12.0), 
+                                                                        Units.degreesToRadians(-113.75))                                                     
+                                                        );
+
+    public static final Matrix<N3, N1> singleTagStdDevs = VecBuilder.fill(0.5, 0.5, 999999.0); // TODO emperically tune
+                                                                                          // Single Tag StdDevs
+    public static final Matrix<N3, N1> multiTagStdDevs = VecBuilder.fill(0.00073, 0.00183, Units.degreesToRadians(0.142)); // TODO emperically tune Multi
+                                                                                         // Tag StdDevs
+  }
+
+  public static final class Intake {
+    @CanId(CanId.Type.MOTOR)
+    public static final int INTAKE_LIFT_MOTOR_ID = 21;
+    @CanId(CanId.Type.MOTOR)
+    public static final int INTAKE_MOTOR_ID = 20;
+    public static final double INTAKE_LIFT_SPEED = 0.25;
+    public static final int CURRENT_LIMIT = 50;
+    public static final int VOLTAGE_LIMIT = 10;
+    public static final double INTAKE_SPEED = 0.75;
+    public static final double LIFT_JKMETERS_SQUARED = 0.00006;
+    public static final double LIFT_MOTOR_GEARING = 1.0 / 100.0;
+    public static final double INTAKE_REACH_METERS = 0.30;
+    public static final double LIFT_MIN_RADIANS = 0;
+    public static final double LIFT_MAX_RADIANS = Math.PI / 2.0;
+    public static final double WHEEL_MOMENT_OF_INERTIA = 0.00006;
+    public static final double INTAKE_GEAR_RATIO = 1.0 / 3.0;
+
+    public static final double INTAKE_P = 0.00005;
+    public static final double INTAKE_I = 0.0;
+    public static final double INTAKE_D = 0.0;
+
+    public static final double INTAKE_kV = 0.0018096;
+    public static final double INTAKE_kA = 0.0022961;
+    public static final double INTAKE_kS = 0.3012;
+  }
+
+  public static final class Indexer {
+    public static final int INDEXER_MOTOR_ID = 40;
+    public static final int CURRENT_LIMIT = 50;
+    public static final double VOLTAGE_LIMIT = 10;
+    public static final double SPEED = 0.75;
+    public static final double WHEEL_MOMENT_OF_INERTIA = 3.8;
+    public static final double INDEXER_GEAR_RATIO = 1.0 / 10.0;
+
+    public static final double INDEXER_kS = 0.0019755;
+    public static final double INDEXER_kV = 0.00056382;
+    public static final double INDEXER_kA = 0.089733;
+
+    public static final double INDEXER_P = 0.00003;
+    public static final double INDEXER_I = 0.000001;
+    public static final double INDEXER_D = 0.00001;
+    // 0.00003,0.000001,0.00001
+  }
 
   public static final class Swerve {
     @CanId(CanId.Type.PIGEON)
-    public static final int IMU_ID = 5;
+    public static final int IMU_ID = 3;
     public static final double TELEOP_MAX_VELOCITY = 4.6;
     public static final double TELEOP_MAX_ACCELERATION = 5.5; // todo
     public static final double TELEOP_MAX_ANGULAR_VELOCITY = Units.degreesToRadians(180);
@@ -121,302 +255,137 @@ public final class Constants {
     public static final double TELEOP_ANGLE_HOLD_FACTOR = 3.0;
 
     public static final class Odometry {
-      public static final Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.1, 0.1, 0.05);
-      public static final Matrix<N3, N1> visionStdDevs = VecBuilder.fill(0.9, 0.9, 0.9);
+      public static final Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.02, 0.02, 0.01); // TODO change state StdDev for
+                                                                                         // Odom
+      public static final Matrix<N3, N1> visionStdDevs = VecBuilder.fill(0.5, 0.5, 999999.0); // TODO change vision StdDev
+                                                                                         // for Odom
     }
 
     public static final class PathFollowing {
-      public static final PIDConstants TRANSLATION_CONSTANTS = 
-        new PIDConstants(4.0, 0.0, 0.0);
-      public static final PIDConstants ROTATION_CONSTANTS = 
-        new PIDConstants(8.0,0.0, 0.8);
+      public static final PIDConstants TRANSLATION_CONSTANTS = new PIDConstants(4.0, 0.0, 0.0);
+      public static final PIDConstants ROTATION_CONSTANTS = new PIDConstants(8.0, 0.0, 0.8);
     }
 
-    public static final class FrontLeftModule {
+    //24 in x 
+   //21 in y 
+
+    public static final class FrontRightModule { //front right 
       @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 14;
+      public static final int DRIVE_MOTOR_ID = 14; 
       @CanId(CanId.Type.MOTOR)
       public static final int ROTATION_MOTOR_ID = 10;
       @CanId(CanId.Type.ENCODER)
       public static final int ROTATION_ENCODER_ID = 10;
-      public static Translation2d moduleOffset = new Translation2d(Units.inchesToMeters(12.375),
-        Units.inchesToMeters(10.125)
-          );
+      public static Translation2d moduleOffset = new Translation2d(Units.inchesToMeters(11.75),
+          -Units.inchesToMeters(10.25));
     }
 
-    public static final class FrontRightModule {
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 17;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 13;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 13;
-      public static Translation2d moduleOffset = new Translation2d(Units.inchesToMeters(12.375),
-          -Units.inchesToMeters(10.125));
-    }
-
-    public static final class BackLeftModule {
+    public static final class FrontLeftModule { //front left
       @CanId(CanId.Type.MOTOR)
       public static final int DRIVE_MOTOR_ID = 15;
       @CanId(CanId.Type.MOTOR)
       public static final int ROTATION_MOTOR_ID = 11;
       @CanId(CanId.Type.ENCODER)
       public static final int ROTATION_ENCODER_ID = 11;
-      public static Translation2d moduleOffset = new Translation2d(-Units.inchesToMeters(12.375),
-        Units.inchesToMeters(10.125));
+      public static Translation2d moduleOffset = new Translation2d(Units.inchesToMeters(11.75),
+          Units.inchesToMeters(10.25));
     }
 
-    public static final class BackRightModule {
+    public static final class BackRightModule { //back right
+      @CanId(CanId.Type.MOTOR)
+      public static final int DRIVE_MOTOR_ID = 17;
+      @CanId(CanId.Type.MOTOR)
+      public static final int ROTATION_MOTOR_ID = 13;
+      @CanId(CanId.Type.ENCODER)
+      public static final int ROTATION_ENCODER_ID = 13;
+      public static Translation2d moduleOffset = new Translation2d(-Units.inchesToMeters(11.75),
+          -Units.inchesToMeters(10.25));
+    }
+
+    public static final class BackLeftModule { //back left
       @CanId(CanId.Type.MOTOR)
       public static final int DRIVE_MOTOR_ID = 16;
       @CanId(CanId.Type.MOTOR)
       public static final int ROTATION_MOTOR_ID = 12;
       @CanId(CanId.Type.ENCODER)
       public static final int ROTATION_ENCODER_ID = 12;
-      public static Translation2d moduleOffset = new Translation2d(-Units.inchesToMeters(12.375),
-          -Units.inchesToMeters(10.125));
+      public static Translation2d moduleOffset = new Translation2d(-Units.inchesToMeters(11.75),
+          Units.inchesToMeters(10.25));
     }
   }
 
-  // Class to access the coordinates of the coral on the field.
-  public static final class CoralPlacement {
-    public static final Transform2d LEFT_CORAL_ROBOT_OFFSET_FROM_APRILTAG =  new Transform2d(
-                                                                          new Translation2d(Units.inchesToMeters(18.0), 
-                                                                                            Units.inchesToMeters(-19.0)), 
-                                                                          Rotation2d.fromDegrees(90));
-    public static final Transform2d RIGHT_CORAL_ROBOT_OFFSET_FROM_APRILTAG = new Transform2d(
-                                                                          new Translation2d(Units.inchesToMeters(18.0),
-                                                                                            Units.inchesToMeters(-6.0)),
-                                                                          Rotation2d.fromDegrees(90));
-
-    public static final Transform2d LEFT_CORAL_APRILTAG_OFFSET = new Transform2d(
-                                                                    new Translation2d(Units.inchesToMeters(-2.0), 
-                                                                                      Units.inchesToMeters(-6.5)),
-                                                                    Rotation2d.fromDegrees(0));
-
-    public static final Transform2d RIGHT_CORAL_APRILTAG_OFFSET = new Transform2d(
-                                                                    new Translation2d(Units.inchesToMeters(-2.0), 
-                                                                                      Units.inchesToMeters(6.5)),
-                                                                    Rotation2d.fromDegrees(0));
-
-    public static final int[] REEF_TAGS = {6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22};
-
-    public final static ArrayList<Pose2d> coordinatesCoral = new ArrayList<>();
-    static {
-      // ordered in line from A-L
-      // rotation degree part of Pos2D is the direction the robot has to face to be
-      // flush against the reef for that branch
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(544.87), Units.inchesToMeters(152.03), Rotation2d.fromDegrees(180)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(544.87), Units.inchesToMeters(164.97), Rotation2d.fromDegrees(180)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(535.08), Units.inchesToMeters(181.89), Rotation2d.fromDegrees(240)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(523.90), Units.inchesToMeters(188.32), Rotation2d.fromDegrees(240)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(504.39), Units.inchesToMeters(188.32), Rotation2d.fromDegrees(300)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(493.16), Units.inchesToMeters(181.89), Rotation2d.fromDegrees(300)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(483.44), Units.inchesToMeters(164.97), Rotation2d.fromDegrees(0.0)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(483.44), Units.inchesToMeters(152.03), Rotation2d.fromDegrees(0.0)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(493.16), Units.inchesToMeters(135.15), Rotation2d.fromDegrees(60)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(504.39), Units.inchesToMeters(128.65), Rotation2d.fromDegrees(60)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(523.90), Units.inchesToMeters(128.65), Rotation2d.fromDegrees(120)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(535.08), Units.inchesToMeters(135.15), Rotation2d.fromDegrees(120)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(146.052), Units.inchesToMeters(164.97), Rotation2d.fromDegrees(0.0)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(146.052), Units.inchesToMeters(152.03), Rotation2d.fromDegrees(0.0)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(155.43), Units.inchesToMeters(135.15), Rotation2d.fromDegrees(60)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(166.65), Units.inchesToMeters(128.65), Rotation2d.fromDegrees(60)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(136.51), Units.inchesToMeters(128.65), Rotation2d.fromDegrees(120)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(197.69), Units.inchesToMeters(135.15), Rotation2d.fromDegrees(120)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(207.48), Units.inchesToMeters(152.03), Rotation2d.fromDegrees(180)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(207.48), Units.inchesToMeters(164.97), Rotation2d.fromDegrees(180)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(197.69), Units.inchesToMeters(181.89), Rotation2d.fromDegrees(240)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(186.51), Units.inchesToMeters(188.32), Rotation2d.fromDegrees(240)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(166.65), Units.inchesToMeters(188.32), Rotation2d.fromDegrees(300)));
-      coordinatesCoral.add(new Pose2d(Units.inchesToMeters(155.43), Units.inchesToMeters(181.89), Rotation2d.fromDegrees(300)));
-    }
-
-    public static ArrayList<Double> heightsCoral = new ArrayList<Double>();
-    static {
-    //ordered in line from A-L
-    //rotation degree part of Pos2D is the direction the robot has to face to be flush against the reef for that branch
-//I STILL NEED L1
-    heightsCoral.add(71.87);
-    heightsCoral.add(47.59);
-    heightsCoral.add(31.72);
-    }
-  }
-  public static final class CoralHandler {
-    // TODO figure out all actual constants
-    public static final double METER_PER_MOTOR_REVOLUTION = 0.0;
-
+  public static final class Shooter {
+    // front top motor
     @CanId(CanId.Type.MOTOR)
-    public static final int OUTTAKE_MOTOR_ID = 40;
+    public static final int TOP_LEFT_SHOOTER_ID = 30;
+
+    // front bottom motor
     @CanId(CanId.Type.MOTOR)
-    public static final int HORIZONTAL_MOTOR_ID = 41;
-    @CanId(CanId.Type.ENCODER)
-    public static final int HORIZONTAL_ENCODER_ID = 41;
+    public static final int BOTTOM_LEFT_SHOOTER_ID = 31;
+
+    // back top motor
     @CanId(CanId.Type.MOTOR)
-    public static final int VERTICAL_MOTOR_ID = 42;
-    @CanId(CanId.Type.ENCODER)
-    public static final int VERTICAL_ENCODER_ID = 42;
+    public static final int TOP_RIGHT_SHOOTER_ID = 32;
 
-    // !! `coralEndEffectorLength` is IN METERS
-    public static final double CORAL_END_EFFECTOR_LENGTH = 0.25;
-    public static final double CORAL_END_EFFECTOR_MASS = 0.5;
+    // back bottom motor
+    @CanId(CanId.Type.MOTOR)
+    public static final int BOTTOM_RIGHT_SHOOTER_ID = 33;
+   
+    // back bottom motor
+    @CanId(CanId.Type.MOTOR)
+    public static final int BITTY_SHOOTER_ID = 34;
 
-    public static final double OUTTAKE_WHEEL_MASS = Units.lbsToKilograms(0.5);
-    public static final double OUTTAKE_WHEEL_RADIUS = 0.02;
+    // top motor controlling stuff
+    public static final double TOP_TARGET_SHOOTER_RPM = 0.0;
+    public static final double TOP_SHOOTER_FF = 0.0;
 
-    public static final double CORAL_INTAKE_SPEED = -0.25;
-    public static final double CORAL_OUTTAKE_SPEED = 0.75;
+    public static final double TOP_SHOOTER_P = 0.0002;
+    public static final double TOP_SHOOTER_I = 0.0000015;
+    public static final double TOP_SHOOTER_D = 0.0001;
 
-    public static final double OUTTAKE_MOTOR_GEARING = 1.0;
-    public static final double HORIZONTAL_GEAR_RATIO = 720.0;
-    public static final double VERTICAL_GEAR_RATIO = 1440.0;
+    // bottom motor controlling stuff
+    public static final double BOTTOM_TARGET_SHOOTER_RPM = 0.0;
+    public static final double BOTTOM_SHOOTER_FF = 0.0;
 
-    public static final double OUTTAKE_JKMETERS_SQUARED = (.5 * OUTTAKE_WHEEL_MASS * Math.pow(OUTTAKE_WHEEL_RADIUS, 2));
-    public static final double OUTTAKE_MOTOR_MIN_VELOCITY = 0.0;
+    public static final double BOTTOM_SHOOTER_P = 0.0002;
+    public static final double BOTTOM_SHOOTER_I = 0.000001;
+    public static final double BOTTOM_SHOOTER_D = 0.0003;
 
-    public static final double HORIZONTAL_MOTOR_POS_P = 0.5;
-    public static final double HORIZONTAL_MOTOR_POS_I = 0.0;
-    public static final double HORIZONTAL_MOTOR_POS_D = 0.1;
-    public static final double HORIZONTAL_MOTOR_MAX_POS_P = 0.0005;
-    public static final double HORIZONTAL_MOTOR_MAX_POS_I = 0.0;
-    public static final double HORIZONTAL_MOTOR_MAX_POS_D = 0.00025;
-    public static final double HORIZONTAL_MOTOR_POS_FEED_FORWARD = 0.0; //1.0 / (565.0 * 12.0);
-    public static final double HORIZONTAL_MOTOR_MAX_POS_FEED_FORWARD = 1.0 / 11004.0;
-    public static final double HORIZONTAL_MOTOR_POS_I_ZONE = 0.0;
-    public static final double HORIZONTAL_MOTOR_MAX_POS_I_ZONE = 1000.0;
-    public static final double HORIZONTAL_MOTOR_MAX_ACCELERATION = 30000.0; // RPM per Sec
-    public static final double HORIZONTAL_MOTOR_MAX_VELOCITY = 10500.0; // RPM
-    public static final double HORIZONTAL_MOTOR_CLOSED_LOPP_ERROR = 1.0;
+    public static final double TOP_kV = 0.002199;
+    public static final double TOP_kA = 0.0022147;
+    public static final double TOP_kS = 0.97509;
 
-    public static final double VERTICAL_MOTOR_POS_P = .5;
-    public static final double VERTICAL_MOTOR_POS_I = 0.0;
-    public static final double VERTICAL_MOTOR_POS_D = 0.1;
-    public static final double VERTICAL_MOTOR_MAX_POS_P = 0.0005;
-    public static final double VERTICAL_MOTOR_MAX_POS_I = 0.0;
-    public static final double VERTICAL_MOTOR_MAX_POS_D = 0.00025;
-    public static final double VERTICAL_MOTOR_POS_FEED_FORWARD = 0.0; //1.0 / (565.0 * 12.0);
-    public static final double VERTICAL_MOTOR_MAX_POS_FEED_FORWARD = 1.0 / 11004.0;
-    public static final double VERTICAL_MOTOR_POS_I_ZONE = 0.0;
-    public static final double VERTICAL_MOTOR_MAX_POS_I_ZONE = 1000.0;
-    public static final double VERTICAL_MOTOR_MAX_ACCELERATION = 30000.0; // RPM per Sec
-    public static final double VERTICAL_MOTOR_MAX_VELOCITY = 10500.0; // RPM
-    public static final double VERTICAL_MOTOR_CLOSED_LOOP_ERROR = 1.0;
+    public static final double BOTTOM_kV = 0.001;
+    public static final double BOTTOM_kA = 0.00021225;
+    public static final double BOTTOM_kS = 0.25114;
 
-    public static final double HORIZONTAL_JKMETERS_SQUARED = 1.0 / 3.0 * CORAL_END_EFFECTOR_MASS
-        * Math.pow(CORAL_END_EFFECTOR_LENGTH, 2.0);
-    public static final double VERTICAL_JKMETERS_SQUARED = 1.0 / 3.0 * CORAL_END_EFFECTOR_MASS
-        * Math.pow(CORAL_END_EFFECTOR_LENGTH, 2.0);
+    public static final double RAMP_RATE = 0.1;
 
-    public static final Rotation2d HORIZONTAL_MIN_ANGLE = Rotation2d.fromDegrees(-80);
-    public static final Rotation2d HORIZONTAL_MAX_ANGLE = Rotation2d.fromDegrees(89);
-    public static final Rotation2d HORIZONTAL_SOFT_LIMIT_FORWARD_ANGLE = Rotation2d.fromDegrees(85.6);
-    public static final Rotation2d HORIZONTAL_SOFT_LIMIT_REVERSE_ANGLE = Rotation2d.fromDegrees(-85.6);
+    public static final double BITTY_kV = 0.0018718;
+    public static final double BITTY_kA = 0.00015177;
+    public static final double BITTY_kS = 0.089733;
 
-    public static final Rotation2d VERTICAL_MIN_ANGLE = Rotation2d.fromDegrees(-90);
-    public static final Rotation2d VERTICAL_MAX_ANGLE = Rotation2d.fromDegrees(90);
-    public static final Rotation2d VERTICAL_SOFT_LIMIT_FORWARD_ANGLE = Rotation2d.fromDegrees(83.2);
-    public static final Rotation2d VERTICAL_SOFT_LIMIT_REVERSE_ANGLE = Rotation2d.fromDegrees(-32.0);
-
-
-    public static final Rotation2d HORIZONTAL_STARTING_ANGLE_IN_RADIANS = Rotation2d.fromDegrees(-90);
-    public static final Rotation2d VERTICAL_STARTING_ANGLE_IN_RADIANS = Rotation2d.fromDegrees(-100);
-
-    public static final double HORIZONTAL_MOTOR_STD_DEV = 0.0;
-    public static final double VERTICAL_MOTOR_STD_DEV = 0.0;
-
-    public static final double HORIZONTAL_MOTOR_MIN_VELOCITY = 0.0;
-    public static final double VERTICAL_MOTOR_MIN_VELOCITY = 0.0;
-
-    public static final double VERTICAL_ROTATION_DEGREES_PER_ROTATION = 360 / VERTICAL_GEAR_RATIO;
-    public static final double HORIZONTAL_ROTATION_DEGREES_PER_ROTATION = 360 / HORIZONTAL_GEAR_RATIO;
-
-    // Need different name, for manual coral joystick control
-    public static final double VERTICAL_ANGLE_CHANGE_DEGREES_PER_SECOND = (VERTICAL_MOTOR_MAX_VELOCITY
-        * VERTICAL_GEAR_RATIO) / 60;
-    public static final double HORIZONTAL_ANGLE_CHANGE_DEGREES_PER_SECOND = (HORIZONTAL_MOTOR_MAX_VELOCITY
-        * HORIZONTAL_GEAR_RATIO) / 60;
-
-    public static final Rotation2d HORIZONTAL_MAX_RIGHT_ANGLE = Rotation2d.fromDegrees(-80);
-    public static final Rotation2d HORIZONTAL_MAX_LEFT_ANGLE = Rotation2d.fromDegrees(89);
-    public static final Rotation2d VERTICAL_HOME_ANGLE = Rotation2d.fromDegrees(82);
-    public static final Rotation2d VERTICAL_INTAKE_ANGLE = Rotation2d.fromDegrees(-30);
-    public static final Rotation2d VERTICAL_LEVEL1_ANGLE = Rotation2d.fromDegrees(0);
-    public static final Rotation2d VERTICAL_LEVEL2_ANGLE = Rotation2d.fromDegrees(29);
-    public static final Rotation2d VERTICAL_LEVEL3_ANGLE = Rotation2d.fromDegrees(35);
-    public static final Rotation2d VERTICAL_LEVEL4_ANGLE = Rotation2d.fromDegrees(44);
-    public static final Rotation2d VERTICAL_AUTO_PREP_ANGLE = Rotation2d.fromDegrees(58.0);
+    public static final double BITTY_BOTTOM_P = 0.0001;
+    public static final double BITTY_BOTTOM_I = 0.000001;
+    public static final double BITTY_BOTTOM_D = 0.0005;
+    
+    public static final double shooterMotorTolerance = 100.0;
+    public static final int SHOOTER_CURRENT_STALL_LIMIT = 100;
+    public static final int SHOOTER_CURRENT_FREE_LIMIT = 50;
+    public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;
   }
 
-  public static final class Climber {
-    @CanId(CanId.Type.MOTOR)
-    public static final int CLIMBER_MOTOR_ID = 51;
-    @CanId(CanId.Type.ENCODER)
-    public static final int ENCODER_ID = 51;
-    @CanId(CanId.Type.PCM_CONTROLLER)
-    public static final int PCM_ID = 5;
-    public static final int FORWARD_SOLENOID_ID = 14;
-    public static final int REVERSE_SOLENOID_ID = 7;
-    public static final double MOTOR_KP = 0.025;
-    public static final double MOTOR_KI = 0;
-    public static final double MOTOR_KD = 0.005;
-    public static final double MOTOR_FF = 0.0;
-    public static final double MOTOR_MAX_KP = 0.05;
-    public static final double MOTOR_MAX_KI = 0.0;
-    public static final double MOTOR_MAX_KD = 0.0025;
-    public static final double MOTOR_MAX_FF = 0.0;
-    public static final double MOTOR_MAX_VELOCITY = 5000.0;
-    public static final double MOTOR_MAX_ACCEL = 6000.0;
-    public static final double GEAR_RATIO = .0045977011494/4.0;
-    public static final double ARM_ANGULAR_MOMENTUM = Units.lbsToKilograms(9.963);
-    public static final double LENGTH_METERS = Units.inchesToMeters(4.785);
-    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-156.0);
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(0);
-    public static final int FORWARDSOLENOID = 14;
-    public static final int REVERSESOLENOID = 7;
+  public static final class SetPoints {
+    public static final Rotation2d trenchRightTurretAngle = Rotation2d.fromDegrees(-110);
+    public static final double trenchRightTargetRPM = 2830;
 
-    public static final double CLIMBER_DEGREES_PER_ROTATION = 360 / GEAR_RATIO;
-    public static final int ENCODERID = 42;
+    public static final Rotation2d trenchLeftTurretAngle = Rotation2d.fromDegrees(106);
+    public static final double trenchLeftTargetRPM = 2830;
+
+    public static final Rotation2d climbRightTurretAngle = Rotation2d.fromDegrees(-179);
+    public static final double climbRightTargetRPM = 2970;
+
+    public static final Rotation2d climbLeftTurretAngle = Rotation2d.fromDegrees(170);
+    public static final double climbLeftTargetRPM = 2910;
   }
-
-  public static final class AlgaeHandler {
-    // Creating constants for LEFT Algae Handler :D
-    @CanId(CanId.Type.MOTOR)
-    static final int LEFT_ALGAE_MOTOR_ID = 20;
-    public static final int LEFT_ALGAE_SOLENOID_ID = 15;
-    public static final int LEFT_ALGAE_LIMIT_ID = 0;
-
-    // Creating constants for RIGHT Algae Handler :D
-    @CanId(CanId.Type.MOTOR)
-    public static final int RIGHT_ALGAE_MOTOR_ID = 21;
-    public static final int RIGHT_ALGAE_SOLENOID_ID = 13;
-    public static final int RIGHT_ALGAE_LIMIT_ID = 1;
-
-    // These values will need to be changed, just place holders
-    public static final double ALGAE_MOTOR_P = 0.001;
-    public static final double ALGAE_MOTOR_I = 0.00;
-    public static final double ALGAE_MOTOR_D = 0.000;
-    public static final double ALGAE_MOTOR_FF = 1.0 / (565.0 * 12);
-    public static final double ALGAE_MOTOR_I_ZONE = 0.0;
-    public static final double ALGAE_MOTOR_MAX_VELOCITY = 6000.0;
-    public static final double ALGAE_MOTOR_MAX_ACCELERATION = 0.0;
-    public static final double ALGAE_MOTOR_ALLOWED_CLOSED_LOOP_ERROR = 1;
-    // Calculates moment of inertia for parameter in flywheel sim for bottom wheels
-    public static final double MASS_OF_BOTTOM_INTAKE_WHEEL = Units.lbsToKilograms(0.076);
-    public static final double RADIUS_OF_BOTTOM_INTAKE_WHEEL = .025;
-    public static final double MOMENT_OF_INERTIA_OF_THE_BOTTOM_INTAKE_WHEEL = .5
-        * (MASS_OF_BOTTOM_INTAKE_WHEEL * (RADIUS_OF_BOTTOM_INTAKE_WHEEL * RADIUS_OF_BOTTOM_INTAKE_WHEEL));
-
-    // Calculates moment of inertia for parameter in flywheel sim for top wheels
-    public static final double MASS_OF_TOP_OF_INTAKE_WHEEL = Units.lbsToKilograms(0.035);
-    public static final double RADIUS_OF_TOP_INTAKE_WHEEL = 1;
-    public static final double MOMENT_OF_INERTIA_OF_THE_TOP_INTAKE_WHEEL = MASS_OF_TOP_OF_INTAKE_WHEEL
-        * (RADIUS_OF_TOP_INTAKE_WHEEL * RADIUS_OF_TOP_INTAKE_WHEEL);
-
-    // all of these ID's are place holders and will need to be edited at a later
-    // date
-    public static final double METERS_PER_MOTOR_REVOLUTION = 0;
-    public static final int AMASS_OF_ALGAE_HANDLER = 6;
-    public static final double ALGAE_GEAR_RATIO = 1.0 / 9.0;
-  }
-
 }

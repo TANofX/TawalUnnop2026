@@ -4,15 +4,20 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.*;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.TalonFXSimState;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -42,28 +47,30 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
   }
 
   // Volts to meters/sec
-  private static final double DRIVE_KV = 3.4;
+  private static final double DRIVE_KV = 1.0482;
   // Volts to meters/sec^2
-  private static final double DRIVE_KA = 0.27;
+  private static final double DRIVE_KA = 0.017468;
 
   // Volts to deg/sec
-  private static final double ROTATION_KV = 12.0 / 900;
+  private static final double ROTATION_KV = 12.0 / 900; //TODO Change Via Sysid
   // Volts to deg/sec^2
-  private static final double ROTATION_KA = 0.00006;
+  private static final double ROTATION_KA = 0.00006; //TODO Change Via Sysid
 
-  private static final double DRIVE_GEARING = 1.0 / 6.75;
+  private static final double DRIVE_GEARING = 1.0 / 5.9;
   private static final double DRIVE_METERS_PER_ROTATION =
       DRIVE_GEARING * Units.inchesToMeters(12.375); //Math.PI * Units.inchesToMeters(4);
-  private static final double ROTATION_DEGREES_PER_ROTATION = (1.0 / 12.8) * 360.0;
+  private static final double ROTATION_DEGREES_PER_ROTATION = (1.0 / 18.75) * 360.0;
 
   // M/s - Tune (Apply full output and measure max vel. Adjust KV/KA for sim if needed)
   public static final double DRIVE_MAX_VEL = 4.65;
 
-  private static final double DRIVE_KP = 0.3;
+  private static final double DRIVE_KP = 0.14979;
   private static final double DRIVE_KD = 0.0;
+  private static final double DRIVE_KI = 0.0;
 
-  private static final double ROTATION_KP = 4.0;
-  private static final double ROTATION_KD = 0.0;
+  private static final double ROTATION_KP = 4.0; //TODO Change Via Sysid
+  private static final double ROTATION_KD = 0.0; //TODO Change Via Sysid
+  private static final double ROTATION_KI = 0.5; //TODO Change Via Sysid
 
   public final ModuleCode moduleCode;
   private final LinearSystemSim<N1, N1, N1> driveSim;
@@ -84,6 +91,18 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
   private final StatusSignal<Current> rotationCurrentSignal;
   private final StatusSignal<Voltage> rotationVoltageSignal;
   private final StatusSignal<Temperature> rotationTempSignal;
+
+  private double prevValueRotKp;
+  private double prevValueRotKd;
+  private double prevValueRotKi;
+  private double prevValueDriveKp;
+  private double prevValueDriveKd;
+  private double prevValueDriveKi;
+
+  private TalonFXConfiguration driveConfig = new TalonFXConfiguration();
+  private TalonFXConfiguration rotationConfig = new TalonFXConfiguration();
+  private TalonFXConfigurator driveConfigurator;
+  private TalonFXConfigurator rotationConfigurator;
 
   private final CANcoder rotationEncoder;
   private final CANcoderConfiguration rotationEncoderConfig;
@@ -124,22 +143,30 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
     rotationEncoderSimState = rotationEncoder.getSimState();
 
     driveMotor = new TalonFX(driveMotorCanID, canBus);
-    TalonFXConfiguration driveConfig = new TalonFXConfiguration();
     driveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     driveConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
     driveConfig.Slot0.kP = DRIVE_KP;
     driveConfig.Slot0.kD = DRIVE_KD;
+    driveConfig.Slot0.kI = DRIVE_KI;
     driveConfig.Slot0.kV = 12.0 / (DRIVE_MAX_VEL / DRIVE_METERS_PER_ROTATION);
-    driveMotor.getConfigurator().apply(driveConfig);
+    driveConfig.CurrentLimits.SupplyCurrentLimit = 70;
+    driveConfig.CurrentLimits.SupplyCurrentLowerLimit = 40;
+    driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    driveConfigurator = driveMotor.getConfigurator(); 
+    driveConfigurator.apply(driveConfig);
     driveSimState = driveMotor.getSimState();
 
     rotationMotor = new TalonFX(rotationMotorCanID, canBus);
-    TalonFXConfiguration rotationConfig = new TalonFXConfiguration();
-    rotationConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    rotationConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     rotationConfig.Slot0.kP = ROTATION_KP;
     rotationConfig.Slot0.kD = ROTATION_KD;
-    rotationMotor.getConfigurator().apply(rotationConfig);
+    rotationConfig.Slot0.kI = ROTATION_KI;
+    rotationConfig.CurrentLimits.SupplyCurrentLimit = 70;
+    rotationConfig.CurrentLimits.SupplyCurrentLowerLimit = 40;
+    rotationConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    rotationConfigurator = rotationMotor.getConfigurator();
+    rotationConfigurator.apply(rotationConfig);
     rotationSimState = rotationMotor.getSimState();
 
     drivePositionSignal = driveMotor.getPosition();
@@ -164,6 +191,21 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
     registerHardware("Drive Motor", driveMotor);
     registerHardware("Rotation Motor", rotationMotor);
     registerHardware("Rotation Encoder", rotationEncoder);
+
+    SmartDashboard.putNumber(getName() + "/DriveKp", DRIVE_KP);
+    SmartDashboard.putNumber(getName() + "/DriveKd", DRIVE_KD);
+    SmartDashboard.putNumber(getName() + "/DriveKi", DRIVE_KI);
+
+    SmartDashboard.putNumber(getName() + "/RotationKp", ROTATION_KP);
+    SmartDashboard.putNumber(getName() + "/RotationKd", ROTATION_KD);
+    SmartDashboard.putNumber(getName() + "/RotationKi", ROTATION_KI);
+
+    prevValueRotKd = ROTATION_KD;
+    prevValueRotKp = ROTATION_KP;
+    prevValueRotKi = ROTATION_KI;
+    prevValueDriveKd = DRIVE_KD;
+    prevValueDriveKp = DRIVE_KP;
+    prevValueDriveKi = DRIVE_KI;
   }
 
   @Override
@@ -186,6 +228,8 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
         rotationTempSignal,
         rotationAbsoluteSignal,
         rotationAbsoluteVelSignal);
+
+    tunePID();
   }
 
   @Override
@@ -259,7 +303,7 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
           rotationStatus.isWarning());
     }
   }
-
+    
   /** Stop all motors */
   public void stopMotors() {
     // NeutralOut request for coast mode
@@ -382,6 +426,33 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
 
   public SwerveModuleState getTargetState() {
     return targetState;
+  }
+
+  private void tunePID(){
+    double rotKd = SmartDashboard.getNumber(getName() + "/RotationKd", ROTATION_KD);
+    double rotKp = SmartDashboard.getNumber(getName() + "/RotationKp", ROTATION_KP);
+    double rotKi = SmartDashboard.getNumber(getName() + "/RotationKi", ROTATION_KI);
+    double driveKd = SmartDashboard.getNumber(getName() + "/DriveKd", DRIVE_KD);
+    double driveKp = SmartDashboard.getNumber(getName() + "/DriveKp", ROTATION_KP);
+    double driveKi = SmartDashboard.getNumber(getName() + "/DriveKi", DRIVE_KI);
+    if (Math.abs(prevValueDriveKd - driveKd) > 0.05 || Math.abs(prevValueDriveKp - driveKp) > 0.05 || Math.abs(prevValueDriveKi - driveKi) > 0.005) {
+    prevValueDriveKp = driveConfig.Slot0.kP = driveKp;
+    prevValueDriveKd = driveConfig.Slot0.kD = driveKd;
+    prevValueDriveKi = driveConfig.Slot0.kI = driveKi;
+    driveConfigurator.apply(driveConfig);
+    SmartDashboard.putNumber(getName() + "/DriveKp", driveKp);
+    SmartDashboard.putNumber(getName() + "/DriveKd", driveKd);
+    SmartDashboard.putNumber(getName() + "/DriveKi", driveKi);
+  }
+  if (Math.abs(prevValueRotKd - rotKd) > 0.05 || Math.abs(prevValueRotKp - rotKp) > 0.05 || Math.abs(prevValueRotKi - rotKi) > 0.05){
+    prevValueRotKp = rotationConfig.Slot0.kP = rotKp;
+    prevValueRotKd = rotationConfig.Slot0.kD = rotKd;
+    prevValueRotKi = rotationConfig.Slot0.kI = rotKi;
+    rotationConfigurator.apply(rotationConfig);
+    SmartDashboard.putNumber(getName() + "/RotationKp", rotKp);
+    SmartDashboard.putNumber(getName() + "/RotationKd", rotKd);
+    SmartDashboard.putNumber(getName() + "/RotationKi", rotKi);
+  }
   }
 
   @Override

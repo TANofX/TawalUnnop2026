@@ -8,7 +8,6 @@ import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.sim.Pigeon2SimState;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
@@ -36,7 +35,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.lib.subsystem.AdvancedSubsystem;
-import frc.lib.swerve.Mk4SwerveModuleProSparkFlex;
+import frc.lib.swerve.Mk4SwerveModulePro;
 import frc.lib.util.Vector3;
 import frc.robot.Constants;
 import frc.robot.util.RobotPoseLookup;
@@ -45,7 +44,7 @@ public final class Swerve extends AdvancedSubsystem {
   protected final SwerveDrivePoseEstimator odometry;
   public final SwerveDriveKinematics kinematics;
 
-  protected final Mk4SwerveModuleProSparkFlex[] modules;
+  protected final Mk4SwerveModulePro[] modules;
 
   protected final Pigeon2 imu;
   protected final Pigeon2SimState imuSim;
@@ -93,27 +92,27 @@ public final class Swerve extends AdvancedSubsystem {
     // imuAccelYSignal = imu.getAccelerationY();
     imuAccelZSignal = imu.getAccelerationZ();
 
-    modules = new Mk4SwerveModuleProSparkFlex[] {
-        new Mk4SwerveModuleProSparkFlex(
-            Mk4SwerveModuleProSparkFlex.ModuleCode.FL,
+    modules = new Mk4SwerveModulePro[] {
+        new Mk4SwerveModulePro(
+            Mk4SwerveModulePro.ModuleCode.FL,
             Constants.Swerve.FrontLeftModule.DRIVE_MOTOR_ID,
             Constants.Swerve.FrontLeftModule.ROTATION_MOTOR_ID,
             Constants.Swerve.FrontLeftModule.ROTATION_ENCODER_ID,
             Constants.CARNIVORE_BUS_NAME), // FL
-        new Mk4SwerveModuleProSparkFlex(
-            Mk4SwerveModuleProSparkFlex.ModuleCode.FR,
+        new Mk4SwerveModulePro(
+            Mk4SwerveModulePro.ModuleCode.FR,
             Constants.Swerve.FrontRightModule.DRIVE_MOTOR_ID,
             Constants.Swerve.FrontRightModule.ROTATION_MOTOR_ID,
             Constants.Swerve.FrontRightModule.ROTATION_ENCODER_ID,
             Constants.CARNIVORE_BUS_NAME), // FR
-        new Mk4SwerveModuleProSparkFlex(
-            Mk4SwerveModuleProSparkFlex.ModuleCode.BL,
+        new Mk4SwerveModulePro(
+            Mk4SwerveModulePro.ModuleCode.BL,
             Constants.Swerve.BackLeftModule.DRIVE_MOTOR_ID,
             Constants.Swerve.BackLeftModule.ROTATION_MOTOR_ID,
             Constants.Swerve.BackLeftModule.ROTATION_ENCODER_ID,
             Constants.CARNIVORE_BUS_NAME), // BL
-        new Mk4SwerveModuleProSparkFlex(
-            Mk4SwerveModuleProSparkFlex.ModuleCode.BR,
+        new Mk4SwerveModulePro(
+            Mk4SwerveModulePro.ModuleCode.BR,
             Constants.Swerve.BackRightModule.DRIVE_MOTOR_ID,
             Constants.Swerve.BackRightModule.ROTATION_MOTOR_ID,
             Constants.Swerve.BackRightModule.ROTATION_ENCODER_ID,
@@ -154,7 +153,8 @@ public final class Swerve extends AdvancedSubsystem {
           config,
           () -> {
             // Boolean supplier that controls when the path will be mirrored for the red
-            // alliance.  This will flip the path being followed to the red side of the field.
+            // alliance. This will flip the path being followed to the red side of the
+            // field.
             // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
             var alliance = DriverStation.getAlliance();
@@ -181,16 +181,17 @@ public final class Swerve extends AdvancedSubsystem {
     poses.add(targetPoseWithApproach);
     List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses);
 
-    PathPlannerPath path = new PathPlannerPath(waypoints, 
-                                                new PathConstraints(4.0, 2.0, 2 * Math.PI, 4 * Math.PI),
-                                                new IdealStartingState(0.0, this.getPose().getRotation()), 
-                                                new GoalEndState(0.0, targetRotation));
+    PathPlannerPath path = new PathPlannerPath(waypoints,
+        new PathConstraints(4.0, 2.0, 2 * Math.PI, 4 * Math.PI),
+        new IdealStartingState(0.0, this.getPose().getRotation()),
+        new GoalEndState(0.0, targetRotation));
 
     return AutoBuilder.followPath(path);
-//     return new FollowPathCommand(path, this::getPose, this::getCurrentSpeeds, this::driveRobotRelativeWithFF, new PPHolonomicDriveController(Constants.Swerve.PathFollowing.TRANSLATION_CONSTANTS,
-//     Constants.Swerve.PathFollowing.ROTATION_CONSTANTS), config, null, this);
- }
- 
+    // return new FollowPathCommand(path, this::getPose, this::getCurrentSpeeds,
+    // this::driveRobotRelativeWithFF, new
+    // PPHolonomicDriveController(Constants.Swerve.PathFollowing.TRANSLATION_CONSTANTS,
+    // Constants.Swerve.PathFollowing.ROTATION_CONSTANTS), config, null, this);
+  }
 
   @Override
   public void periodic() {
@@ -200,6 +201,7 @@ public final class Swerve extends AdvancedSubsystem {
     Pose2d currentPose = odometry.update(getYaw(), getPositions());
     double correctTimeMS = (Timer.getFPGATimestamp() - startTime) * 1000;
     SmartDashboard.putNumber("Swerve/OdomRuntime", correctTimeMS);
+    SmartDashboard.putNumber("Server/Gyro Angle", getYaw().getDegrees());
     field2d.setRobotPose(currentPose);
     poseLookup.addPose(currentPose);
     SwerveModuleState[] moduleStates = new SwerveModuleState[] {
@@ -266,6 +268,8 @@ public final class Swerve extends AdvancedSubsystem {
             modules[3].getTargetState().speedMetersPerSecond,
         });
 
+    SmartDashboard.putNumber("Swerve/ModuleDifference",
+        modules[0].getTargetState().speedMetersPerSecond - modules[0].getDriveVelocityMetersPerSecond());
     // Rotation3d orientation = getOrientation();
     // SmartDashboard.putNumberArray(
     // "Swerve/Orientation",
@@ -334,7 +338,7 @@ public final class Swerve extends AdvancedSubsystem {
   public void driveRobotRelative(ChassisSpeeds speeds) {
     SwerveModuleState[] targetStates = kinematics.toSwerveModuleStates(speeds);
 
-    SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, Mk4SwerveModuleProSparkFlex.DRIVE_MAX_VEL);
+    SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, Mk4SwerveModulePro.DRIVE_MAX_VEL);
 
     setModuleStates(targetStates);
   }
@@ -342,7 +346,7 @@ public final class Swerve extends AdvancedSubsystem {
   public void driveRobotRelativeWithFF(ChassisSpeeds speeds, DriveFeedforwards ff) {
     SwerveModuleState[] targetStates = kinematics.toSwerveModuleStates(speeds);
 
-    SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, Mk4SwerveModuleProSparkFlex.DRIVE_MAX_VEL);
+    SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, Mk4SwerveModulePro.DRIVE_MAX_VEL);
 
     setModuleStates(targetStates);
   }
@@ -437,6 +441,10 @@ public final class Swerve extends AdvancedSubsystem {
     return odometry.getEstimatedPosition();
   }
 
+  public SwerveDrivePoseEstimator getPoseEstimator() {
+    return odometry;
+  }
+
   /**
    * Set the desired states of all the swerve modules
    *
@@ -478,7 +486,7 @@ public final class Swerve extends AdvancedSubsystem {
   }
 
   public void lockModules() {
-    for (Mk4SwerveModuleProSparkFlex module : modules) {
+    for (Mk4SwerveModulePro module : modules) {
       module.lockModule();
     }
   }
@@ -491,7 +499,7 @@ public final class Swerve extends AdvancedSubsystem {
   public Command zeroModulesCommand() {
     return Commands.runOnce(
         () -> {
-          for (Mk4SwerveModuleProSparkFlex module : modules) {
+          for (Mk4SwerveModulePro module : modules) {
             module.updateRotationOffset();
           }
         })
@@ -501,16 +509,17 @@ public final class Swerve extends AdvancedSubsystem {
   public ChassisSpeeds getCurrentSpeeds() {
     return kinematics.toChassisSpeeds(getStates());
   }
- public Command backUpCommand() {
-  return Commands.race(
-    Commands.run(()-> {
-      this.driveRobotRelative(new ChassisSpeeds(0.0 , -1.0, 0.0));
-    }),
-    Commands.waitSeconds(.30)
 
-  );
- }
-  @SuppressWarnings("removal")
+  public Command backUpCommand() {
+    return Commands.race(
+        Commands.run(() -> {
+          this.driveRobotRelative(new ChassisSpeeds(0.0, -1.0, 0.0));
+        }),
+        Commands.waitSeconds(.30)
+
+    );
+  }
+
   @Override
   protected Command systemCheckCommand() {
     return Commands.sequence(
@@ -535,7 +544,9 @@ public final class Swerve extends AdvancedSubsystem {
         Commands.runOnce(
             () -> {
               driveFieldRelative(new ChassisSpeeds());
-              if (-imu.getRate() < Units.radiansToDegrees(0.3)) {
+              double currentVelocityDPS = Math.abs(imu.getAngularVelocityZWorld().refresh().getValueAsDouble() * 360);
+              double thresholdDPS = Units.radiansToDegrees(0.3);
+              if (currentVelocityDPS < thresholdDPS) {
                 addFault("[System Check] IMU rate too low", false, true);
               }
             },
@@ -545,7 +556,9 @@ public final class Swerve extends AdvancedSubsystem {
         Commands.runOnce(
             () -> {
               driveFieldRelative(new ChassisSpeeds());
-              if (-imu.getRate() > Units.radiansToDegrees(-0.3)) {
+              double currentVelocityDPS = Math.abs(imu.getAngularVelocityZWorld().refresh().getValueAsDouble() * 360);
+              double thresholdDPS = Units.radiansToDegrees(0.3);
+              if (currentVelocityDPS < thresholdDPS) {
                 addFault("[System Check] IMU rate too low", false, true);
               }
             },
