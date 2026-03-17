@@ -160,7 +160,7 @@ public class Intake extends SubsystemBase {
     liftMotor.set(.1);
   }
   public void intakeToJostle() {
-    intakeMotor.set(0.1);
+    intakeMotor.set(0.2);
     
   }
   public void lowerIntakeManually() {

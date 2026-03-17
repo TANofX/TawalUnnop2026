@@ -4,9 +4,11 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.sim.SparkFlexSim;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.sim.SparkFlexSim;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -14,6 +16,7 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -26,6 +29,7 @@ import frc.robot.Constants;
 public class Indexer extends SubsystemBase {
   private final SparkFlex indexerMotor;
   private final SparkFlexConfig indexerMotorConfig;
+  private final SparkClosedLoopController indexerMotorController;
 
   private final SparkFlexSim flexSim;
 
@@ -38,6 +42,7 @@ public class Indexer extends SubsystemBase {
 
   public Indexer(int indexerMotorID) {
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
+    indexerMotorController = indexerMotor.getClosedLoopController();
     indexerMotorConfig = new SparkFlexConfig();
     indexerMotorConfig.closedLoop.feedForward.sva(Constants.Indexer.INDEXER_kS, Constants.Indexer.INDEXER_kV,
         Constants.Indexer.INDEXER_kA);
@@ -68,15 +73,21 @@ public class Indexer extends SubsystemBase {
   }
 
   public void indexerForward() {
-    indexerMotor.set(Constants.Indexer.SPEED);
+    // indexerMotor.set(Constants.Indexer.SPEED); // TODO change to PID
+    indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
-    indexerMotor.set(Constants.Indexer.SPEED * -1);
+    // indexerMotor.set(Constants.Indexer.SPEED * -1);
+    indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
   }
 
   public void stopIndexer() {
     indexerMotor.stopMotor();
+  }
+
+  public double getMotorRPM() {
+    return indexerMotor.getEncoder().getVelocity();
   }
 
   public Command shootFuel() {
@@ -90,6 +101,7 @@ public class Indexer extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Indexer/output", indexerMotor.getAppliedOutput());
+    SmartDashboard.putNumber("Indexer/Current Speed", getMotorRPM());
 
   }
 }

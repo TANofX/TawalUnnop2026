@@ -206,10 +206,10 @@ public final class Constants {
     public static final int INTAKE_LIFT_MOTOR_ID = 21;
     @CanId(CanId.Type.MOTOR)
     public static final int INTAKE_MOTOR_ID = 20;
-    public static final double INTAKE_LIFT_SPEED = 0.5;
+    public static final double INTAKE_LIFT_SPEED = 0.25;
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
-    public static final double INTAKE_SPEED = 0.5;
+    public static final double INTAKE_SPEED = 0.75;
     public static final double LIFT_JKMETERS_SQUARED = 0.00006;
     public static final double LIFT_MOTOR_GEARING = 1.0 / 100.0;
     public static final double INTAKE_REACH_METERS = 0.30;
@@ -231,7 +231,7 @@ public final class Constants {
     public static final int INDEXER_MOTOR_ID = 40;
     public static final int CURRENT_LIMIT = 50;
     public static final double VOLTAGE_LIMIT = 10;
-    public static final double SPEED = 0.5;
+    public static final double SPEED = 0.75;
     public static final double WHEEL_MOMENT_OF_INERTIA = 3.8;
     public static final double INDEXER_GEAR_RATIO = 1.0 / 10.0;
 
@@ -369,17 +369,17 @@ public final class Constants {
     public static final double BITTY_BOTTOM_I = 0.000001;
     public static final double BITTY_BOTTOM_D = 0.0005;
     
-    public static final double shooterMotorTolerance = 50.0;
+    public static final double shooterMotorTolerance = 100.0;
     public static final int SHOOTER_CURRENT_STALL_LIMIT = 100;
     public static final int SHOOTER_CURRENT_FREE_LIMIT = 50;
     public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;
   }
 
   public static final class SetPoints {
-    public static final Rotation2d trenchRightTurretAngle = Rotation2d.fromDegrees(-120);
+    public static final Rotation2d trenchRightTurretAngle = Rotation2d.fromDegrees(-110);
     public static final double trenchRightTargetRPM = 2830;
 
-    public static final Rotation2d trenchLeftTurretAngle = Rotation2d.fromDegrees(75);
+    public static final Rotation2d trenchLeftTurretAngle = Rotation2d.fromDegrees(106);
     public static final double trenchLeftTargetRPM = 2830;
 
     public static final Rotation2d climbRightTurretAngle = Rotation2d.fromDegrees(-179);
