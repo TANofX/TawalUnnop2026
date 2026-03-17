@@ -376,10 +376,10 @@ public final class Constants {
   }
 
   public static final class SetPoints {
-    public static final Rotation2d trenchRightTurretAngle = Rotation2d.fromDegrees(-120);
+    public static final Rotation2d trenchRightTurretAngle = Rotation2d.fromDegrees(-110);
     public static final double trenchRightTargetRPM = 2830;
 
-    public static final Rotation2d trenchLeftTurretAngle = Rotation2d.fromDegrees(120);
+    public static final Rotation2d trenchLeftTurretAngle = Rotation2d.fromDegrees(106);
     public static final double trenchLeftTargetRPM = 2830;
 
     public static final Rotation2d climbRightTurretAngle = Rotation2d.fromDegrees(-179);

@@ -258,8 +258,8 @@ public class Shooter extends SubsystemBase {
   }
 
   public boolean runIndexer(){
-        return hasTarget() && (topMotorsAtSpeed());
-    // return hasTarget() && (topMotorsAtSpeed() && bottomMotorsAtSpeed());
+        // return hasTarget() && (topMotorsAtSpeed());
+    return hasTarget() && (topMotorsAtSpeed() && bottomMotorsAtSpeed());
   }
 
   // Starting shooter commands!!
