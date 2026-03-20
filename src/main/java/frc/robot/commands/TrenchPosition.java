@@ -9,15 +9,15 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class ResetOdometry extends Command {
+public class TrenchPosition extends Command {
   private String side;
-  private Swerve swerve;
+  private CommandSwerveDrivetrain swerve;
 
   /** Creates a new ResetOdometry. */
-  public ResetOdometry(String side, Swerve swerve) {
+  public TrenchPosition(String side, CommandSwerveDrivetrain swerve) {
     this.side = side;
     this.swerve = swerve;
     // Use addRequirements() here to declare subsystem dependencies.
@@ -30,23 +30,23 @@ public class ResetOdometry extends Command {
         .orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red;
     if (side == "right") {
       if (!isRedAlliance) {
-        swerve.resetOdometry(
+        swerve.resetPose(
             new Pose2d(Units.inchesToMeters(156.06), Units.inchesToMeters(26 / 2), Rotation2d.fromDegrees(0)));
         // blue side right
       } else {
-        swerve.resetOdometry(
+        swerve.resetPose(
             new Pose2d(Units.inchesToMeters(489.3), Units.inchesToMeters(317.69 - (26 / 2)),
                 Rotation2d.fromDegrees(180)));
         // red side right
       }
     } else {
       if (!isRedAlliance) {
-        swerve.resetOdometry(
+        swerve.resetPose(
             new Pose2d(Units.inchesToMeters(156.06), Units.inchesToMeters(317.69 - (26 / 2)),
                 Rotation2d.fromDegrees(180)));
         // blue side left
       } else {
-        swerve.resetOdometry(
+        swerve.resetPose(
             new Pose2d(Units.inchesToMeters(489.3), Units.inchesToMeters(26 / 2), Rotation2d.fromDegrees(0)));
         // red side left
       }

@@ -9,6 +9,8 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,6 +23,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -29,8 +32,8 @@ import frc.lib.swerve.TunerConstants;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
-import frc.robot.commands.LadderPosition;
-import frc.robot.commands.ResetOdometry;
+import frc.robot.commands.BumpPosition;
+import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
 import frc.robot.commands.ZeroTurret;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -51,7 +54,6 @@ public class RobotContainer {
   public static final Rotation2d leftClimbAngle = Constants.SetPoints.climbLeftTurretAngle;
   public static final Rotation2d rightTrenchAngle = Constants.SetPoints.trenchRightTurretAngle;
   public static final Rotation2d leftTrenchAngle = Constants.SetPoints.trenchLeftTurretAngle;
-  public static SendableChooser<Command> chooser;
   // Controllers
   public static final XboxControllerWrapper driver = new XboxControllerWrapper(0, 0.1);
   public static final XboxControllerWrapper coDriver = new XboxControllerWrapper(1, 0.1);
@@ -96,7 +98,7 @@ public class RobotContainer {
 
   public static final FireControl fireControl = new FireControl(
       () -> {
-        return swerve.getPose().transformBy(new Transform2d(
+        return drivetrain.getState().Pose.transformBy(new Transform2d(
             Constants.Turret.ROBOT_TO_SHOOTER.getTranslation().toTranslation2d(),
             Constants.Turret.ROBOT_TO_SHOOTER.getRotation().toRotation2d()));
       },
@@ -106,30 +108,45 @@ public class RobotContainer {
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
 
-  private SendableChooser<Command> autoChooser() {
-    chooser = new SendableChooser<>();
-    chooser.addOption("rightTrench", rightTrenchAutoCommand());
-    chooser.addOption("leftTrench", leftTrenchAutoCommand());
-    chooser.addOption("rightBump", rightBumpAutoCommand());
-    chooser.addOption("leftBump", leftBumpAutoCommand());
-    return chooser;
-  }
-
-  public Command getAutonomousCommand() {
-    return chooser.getSelected();
-  }
+  // private SendableChooser<Command> autoChooser() {
+  // chooser = new SendableChooser<>();
+  // chooser.addOption("rightTrench", rightTrenchAutoCommand());
+  // chooser.addOption("leftTrench", leftTrenchAutoCommand());
+  // chooser.addOption("rightBump", rightBumpAutoCommand());
+  // chooser.addOption("leftBump", leftBumpAutoCommand());
+  // return chooser;
+  // }
+  private final SendableChooser<Command> autoChooser;
 
   public RobotContainer() {
+    autoChooser = AutoBuilder.buildAutoChooser("test");
+    SmartDashboard.putData("Auto Mode", autoChooser);
+
     configureButtonBindings();
-    SmartDashboard.putData(swerve.zeroModulesCommand());
+
     SmartDashboard.putData("Reset Position", Commands.runOnce(() -> {
-      swerve.resetOdometry(Pose2d.kZero);
-    }, swerve));
+      drivetrain.resetPose(Pose2d.kZero);
+    }, drivetrain));
+
+    vision.addCamera("heart", Constants.Vision.robotToHeart);
+    // vision.addCamera("club", Constants.Vision.robotToClub);
+    // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
+    vision.addCamera("Arducam_OV9281_USB_Camera",
+        Constants.Vision.robotToArudcam);
+
+    // Warmup PathPlanner to avoid Java pauses
+    CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+  }
+
+  private void configureButtonBindings() {
+    coDriver.START();
+    SmartDashboard.putData(new ZeroTurret(turret));
+    SmartDashboard.putData(new CalibrateTurret(turret));
+    // SmartDashboard.putData("Autos", autoChooser());
 
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
         Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
-
     // Note that X is defined as forward according to WPILib convention,
     // and Y is defined as to the left according to WPILib convention.
     drivetrain.setDefaultCommand(
@@ -138,37 +155,20 @@ public class RobotContainer {
             .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
         ));
-
     // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
     final var idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled().whileTrue(
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-    vision.addCamera("heart", Constants.Vision.robotToHeart);
-    // vision.addCamera("club", Constants.Vision.robotToClub);
-    // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
-    vision.addCamera("Arducam_OV9281_USB_Camera",
-        Constants.Vision.robotToArudcam);
-
-    drivetrain.registerTelemetry(logger::telemeterize);
-  }
-
-  private void configureButtonBindings() {
-    coDriver.START();
-    SmartDashboard.putData(new ZeroTurret(turret));
-    SmartDashboard.putData(new CalibrateTurret(turret));
-    SmartDashboard.putData("Autos", autoChooser());
-
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     driver.DUp().whileTrue(CreateFixedShooterCommand(Rotation2d.fromDegrees(0), 900));
     // driver.LB().whileTrue(intake.extakeFuel());
     driver.RT().whileTrue(shootTestFuelCommand());
     driver.Y().onTrue(intake.putUpIntake());
+
     coDriver.DUp().whileTrue(intakePushFuel());
     coDriver.DDown().whileTrue(manualIntakeDownCommand());
-
-    // Clear intake/indexer
     coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
     coDriver.RB().whileTrue(Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
     coDriver.RT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
@@ -178,6 +178,8 @@ public class RobotContainer {
     coDriver.B().whileTrue(CreateFixedShooterCommand(rightTrenchAngle, rightTrenchRPM));
     coDriver.X().whileTrue(CreateFixedShooterCommand(leftTrenchAngle, leftTrenchRPM));
     coDriver.Y().whileTrue(CreateFixedShooterCommand(leftClimbAngle, leftClimbRPM));
+
+    drivetrain.registerTelemetry(logger::telemeterize);
   }
 
   private Command CreateFixedShooterCommand(Rotation2d angle, double rpm) {
@@ -209,14 +211,13 @@ public class RobotContainer {
     }).finallyDo(() -> {
       intake.stopLift();
     });
-
   }
 
   public Command leftBumpAutoCommand() {
     double rpm = 2300;
     Rotation2d angle = Rotation2d.fromDegrees(180);
 
-    return Commands.sequence(new LadderPosition("left", swerve), new ResetOdometry("left", swerve),
+    return Commands.sequence(new BumpPosition("left", drivetrain),
         new CalibrateTurret(turret),
         new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
@@ -225,7 +226,7 @@ public class RobotContainer {
     double rpm = 2300;
     Rotation2d angle = Rotation2d.fromDegrees(0);
 
-    return Commands.sequence(new LadderPosition("right", swerve), new ResetOdometry("right", swerve),
+    return Commands.sequence(new BumpPosition("right", drivetrain),
         new CalibrateTurret(turret),
         new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
@@ -234,7 +235,7 @@ public class RobotContainer {
     double rpm = rightTrenchRPM;
     Rotation2d angle = rightTrenchAngle;
 
-    return Commands.sequence(new ResetOdometry("right", swerve), new CalibrateTurret(turret),
+    return Commands.sequence(new TrenchPosition("right", drivetrain), new CalibrateTurret(turret),
         new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
@@ -242,8 +243,11 @@ public class RobotContainer {
     double rpm = leftTrenchRPM;
     Rotation2d angle = leftTrenchAngle;
 
-    return Commands.sequence(new ResetOdometry("left", swerve), new CalibrateTurret(turret),
+    return Commands.sequence(new TrenchPosition("left", drivetrain), new CalibrateTurret(turret),
         new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
+  public Command getAutonomousCommand() {
+    return autoChooser.getSelected();
+  }
 }
