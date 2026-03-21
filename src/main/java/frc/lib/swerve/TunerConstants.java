@@ -24,15 +24,16 @@ public class TunerConstants {
     // The steer motor uses any SwerveModule.SteerRequestType control request with the
     // output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
     private static final Slot0Configs steerGains = new Slot0Configs()
-        .withKP(100).withKI(0).withKD(0.5)
-        .withKS(0.1).withKV(2.33).withKA(0)
+        .withKP(0.025).withKI(0).withKD(0.5)
+        .withKS(0.2883).withKV(1.9099).withKA(0.028176)
         .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
+    
     // When using closed-loop control, the drive motor uses the control
     // output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
     private static final Slot0Configs driveGains = new Slot0Configs()
-        .withKP(0.1).withKI(0).withKD(0)
-        .withKS(0).withKV(0.124);
-
+        .withKP(0.071064).withKI(0).withKD(0.0)
+        .withKS(0.14538).withKV(0.111988).withKA(0.0057459);
+        
     // The closed-loop output type to use for the steer motors;
     // This affects the PID/FF gains for the steer motors
     private static final ClosedLoopOutputType kSteerClosedLoopOutput = ClosedLoopOutputType.Voltage;
@@ -63,7 +64,7 @@ public class TunerConstants {
                 // stator current limit to help avoid brownouts without impacting performance.
                 .withStatorCurrentLimit(Amps.of(60))
                 .withStatorCurrentLimitEnable(true)
-        );
+        ).withClosedLoopGeneral(new ClosedLoopGeneralConfigs().withGainSchedErrorThreshold(0.5));
     private static final CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
     // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
     private static final Pigeon2Configuration pigeonConfigs = null;
@@ -129,7 +130,7 @@ public class TunerConstants {
     private static final int kFrontLeftDriveMotorId = 15;
     private static final int kFrontLeftSteerMotorId = 11;
     private static final int kFrontLeftEncoderId = 11;
-    private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.21533203125);
+    private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.228271484375);
     private static final boolean kFrontLeftSteerMotorInverted = true;
     private static final boolean kFrontLeftEncoderInverted = false;
 
@@ -140,7 +141,7 @@ public class TunerConstants {
     private static final int kFrontRightDriveMotorId = 14;
     private static final int kFrontRightSteerMotorId = 10;
     private static final int kFrontRightEncoderId = 10;
-    private static final Angle kFrontRightEncoderOffset = Rotations.of(0.109130859375);
+    private static final Angle kFrontRightEncoderOffset = Rotations.of(0.108642578125);
     private static final boolean kFrontRightSteerMotorInverted = true;
     private static final boolean kFrontRightEncoderInverted = false;
 
@@ -151,7 +152,7 @@ public class TunerConstants {
     private static final int kBackLeftDriveMotorId = 16;
     private static final int kBackLeftSteerMotorId = 12;
     private static final int kBackLeftEncoderId = 12;
-    private static final Angle kBackLeftEncoderOffset = Rotations.of(0.212646484375);
+    private static final Angle kBackLeftEncoderOffset = Rotations.of(0.20654296875);
     private static final boolean kBackLeftSteerMotorInverted = true;
     private static final boolean kBackLeftEncoderInverted = false;
 
@@ -162,7 +163,7 @@ public class TunerConstants {
     private static final int kBackRightDriveMotorId = 17;
     private static final int kBackRightSteerMotorId = 13;
     private static final int kBackRightEncoderId = 13;
-    private static final Angle kBackRightEncoderOffset = Rotations.of(0.065185546875);
+    private static final Angle kBackRightEncoderOffset = Rotations.of(0.063232421875);
     private static final boolean kBackRightSteerMotorInverted = true;
     private static final boolean kBackRightEncoderInverted = false;
 
@@ -262,10 +263,10 @@ public class TunerConstants {
          *                                  unspecified or set to 0 Hz, this is 250 Hz on
          *                                  CAN FD, and 100 Hz on CAN 2.0.
          * @param odometryStandardDeviation The standard deviation for odometry calculation
-         *                                  in the form [x, y, theta]ᵀ, with units in meters
+         *                                  in the form [x, y, theta]áµ€, with units in meters
          *                                  and radians
          * @param visionStandardDeviation   The standard deviation for vision calculation
-         *                                  in the form [x, y, theta]ᵀ, with units in meters
+         *                                  in the form [x, y, theta]áµ€, with units in meters
          *                                  and radians
          * @param modules                   Constants for each specific module
          */

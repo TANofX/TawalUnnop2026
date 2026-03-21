@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
 import edu.wpi.first.math.VecBuilder;
@@ -107,10 +108,6 @@ public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
 
-  //Register Named PathPlanner Commands
-  // NamedCommands.registerCommand("Shoot", );
-  // NamedCommands.registerCommand("Collect Fuel");
-
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
 
@@ -124,8 +121,13 @@ public class RobotContainer {
   // }
 
   public RobotContainer() {
-    autoChooser = AutoBuilder.buildAutoChooser("test");
+    autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
+    
+  // Register Named PathPlanner Commands
+  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(turret.getTargetAngle(), fireControl.getShooterRpm()));
+  NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+
 
     configureButtonBindings();
 
@@ -133,11 +135,11 @@ public class RobotContainer {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    vision.addCamera("heart", Constants.Vision.robotToHeart);
+    // vision.addCamera("heart", Constants.Vision.robotToHeart);
     // vision.addCamera("club", Constants.Vision.robotToClub);
     // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
-    vision.addCamera("Arducam_OV9281_USB_Camera",
-        Constants.Vision.robotToArudcam);
+    // vision.addCamera("Arducam_OV9281_USB_Camera",
+    //     Constants.Vision.robotToArudcam);
 
     // Warmup PathPlanner to avoid Java pauses
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
@@ -152,10 +154,10 @@ public class RobotContainer {
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
         Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
+    
     // Note that X is defined as forward according to WPILib convention,
     // and Y is defined as to the left according to WPILib convention.
     drivetrain.setDefaultCommand(
-        // Drivetrain will execute this command periodically
         drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
             .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
