@@ -105,6 +105,12 @@ public class RobotContainer {
       () -> DriverStation.getAlliance().orElse(Alliance.Blue),
       () -> new ChassisSpeeds());
 
+  private final SendableChooser<Command> autoChooser;
+
+  //Register Named PathPlanner Commands
+  // NamedCommands.registerCommand("Shoot", );
+  // NamedCommands.registerCommand("Collect Fuel");
+
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
 
@@ -116,7 +122,6 @@ public class RobotContainer {
   // chooser.addOption("leftBump", leftBumpAutoCommand());
   // return chooser;
   // }
-  private final SendableChooser<Command> autoChooser;
 
   public RobotContainer() {
     autoChooser = AutoBuilder.buildAutoChooser("test");
