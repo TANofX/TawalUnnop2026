@@ -269,6 +269,23 @@ public class Shooter extends SubsystemBase {
           stopShooterMotors();
         }));
   }
+  
+  // this stuff is for robotLogger frfr
+  public double getTopRPM() {
+    return shooterLeftTopEncoder.getVelocity();
+}
+public double getBottomRPM() {
+    return shooterLeftBottomEncoder.getVelocity();
+}
+
+public double getTopCurrentDraw() {
+    return shooterLeftTopMotor.getOutputCurrent();
+
+}
+public double getBottomCurrentDraw() {
+    return shooterLeftBottomMotor.getOutputCurrent();
+
+}
   // public Command runMotors() {
   // return Commands.sequence(
   // Commands.runOnce(() -> {

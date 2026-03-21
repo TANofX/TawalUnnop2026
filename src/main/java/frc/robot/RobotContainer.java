@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.input.controllers.XboxControllerWrapper;
+import frc.lib.util.RobotLogger;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.FixedShooter;
 import frc.robot.commands.ShootWithIndexer;
@@ -42,6 +43,7 @@ public class RobotContainer {
   // Controllers
   public static final XboxControllerWrapper driver = new XboxControllerWrapper(0, 0.1);
   public static final XboxControllerWrapper coDriver = new XboxControllerWrapper(1, 0.1);
+  public static final XboxControllerWrapper logController = new XboxControllerWrapper(2,0.1);
 
   // Subsystems
   public static final Swerve swerve = new Swerve();// new Swerve();
@@ -75,7 +77,7 @@ public class RobotContainer {
                                                       () -> new ChassisSpeeds());
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
-
+ public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl);
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
   }
@@ -99,6 +101,8 @@ public class RobotContainer {
       swerve.resetOdometry(Pose2d.kZero);
     }, swerve));
     //turret.setDefaultCommand(Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
+    
+  
   }
 
   private void configureButtonBindings() {
@@ -120,6 +124,11 @@ public class RobotContainer {
     coDriver.B().whileTrue(CreateFixedShooterCommand(rightTrenchAngle, rightTrenchRPM));
     coDriver.X().whileTrue(CreateFixedShooterCommand(leftTrenchAngle, leftTrenchRPM));
     coDriver.Y().whileTrue(CreateFixedShooterCommand(leftClimbAngle, leftClimbRPM));
+
+    logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();
+}));
+
+    
   }
 
   private Command CreateFixedShooterCommand(Rotation2d angle, double rpm) {

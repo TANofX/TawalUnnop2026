@@ -11,9 +11,13 @@ import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.*;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.TalonFXSimState;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -146,6 +150,9 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
     driveConfig.Slot0.kD = DRIVE_KD;
     driveConfig.Slot0.kI = DRIVE_KI;
     driveConfig.Slot0.kV = 12.0 / (DRIVE_MAX_VEL / DRIVE_METERS_PER_ROTATION);
+    driveConfig.CurrentLimits.SupplyCurrentLimit = 70;
+    driveConfig.CurrentLimits.SupplyCurrentLowerLimit = 40;
+    driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     driveConfigurator = driveMotor.getConfigurator(); 
     driveConfigurator.apply(driveConfig);
     driveSimState = driveMotor.getSimState();
@@ -155,6 +162,9 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
     rotationConfig.Slot0.kP = ROTATION_KP;
     rotationConfig.Slot0.kD = ROTATION_KD;
     rotationConfig.Slot0.kI = ROTATION_KI;
+    rotationConfig.CurrentLimits.SupplyCurrentLimit = 70;
+    rotationConfig.CurrentLimits.SupplyCurrentLowerLimit = 40;
+    rotationConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     rotationConfigurator = rotationMotor.getConfigurator();
     rotationConfigurator.apply(rotationConfig);
     rotationSimState = rotationMotor.getSimState();
