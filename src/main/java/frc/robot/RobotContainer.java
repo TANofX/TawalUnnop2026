@@ -57,7 +57,6 @@ public class RobotContainer {
             timestamp,
             VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
       });
-
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
       Constants.Intake.INTAKE_MOTOR_ID);
   public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID);
@@ -76,6 +75,8 @@ public class RobotContainer {
       },
       () -> DriverStation.getAlliance().orElse(Alliance.Blue),
       () -> new ChassisSpeeds());
+
+      
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
 
@@ -96,8 +97,10 @@ public class RobotContainer {
     configureButtonBindings();
 
     vision.addCamera("heart", Constants.Vision.robotToHeart);
+
     vision.addCamera("club", Constants.Vision.robotToClub);
     vision.addCamera("diamond", Constants.Vision.robotToDiamond);
+
     vision.addCamera("Arducam_OV9281_USB_Camera",
     Constants.Vision.robotToArudcam);
 
