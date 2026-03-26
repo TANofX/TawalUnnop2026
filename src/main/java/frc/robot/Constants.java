@@ -161,6 +161,7 @@ public final class Constants {
 
     public static final double CALISPEED = .2;
 
+    //TODO change robot transforms to camera and shooter
     public static final Transform3d ROBOT_TO_SHOOTER = new Transform3d(
                                                           new Translation3d(Units.inchesToMeters(-7.486), 0.0, Units.inchesToMeters(17.938)),
                                                           new Rotation3d(0.0, 0.0, 0.0)

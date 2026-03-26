@@ -125,21 +125,20 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
     
   // Register Named PathPlanner Commands
-  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(turret.getTargetAngle(), fireControl.getShooterRpm()));
+  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(fireControl.getCurrentTarget(), fireControl.getShooterRpm()));
   NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
 
-    configureButtonBindings();
+    configureButtonBindings();x
 
     SmartDashboard.putData("Reset Position", Commands.runOnce(() -> {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    // vision.addCamera("heart", Constants.Vision.robotToHeart);
-    // vision.addCamera("club", Constants.Vision.robotToClub);
-    // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
-    // vision.addCamera("Arducam_OV9281_USB_Camera",
-    //     Constants.Vision.robotToArudcam);
+    // vision.addCamera("heart", Constants.Vision.);
+    // vision.addCamera("club", Constants.Vision.);
+    // vision.addCamera("diamond", Constants.Vision.);
+    // vision.addCamera("spade", Constants.Vision.);
 
     // Warmup PathPlanner to avoid Java pauses
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
