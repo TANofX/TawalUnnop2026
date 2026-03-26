@@ -129,16 +129,16 @@ public class RobotContainer {
   NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
 
-    configureButtonBindings();x
+    configureButtonBindings();
 
     SmartDashboard.putData("Reset Position", Commands.runOnce(() -> {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    // vision.addCamera("heart", Constants.Vision.);
-    // vision.addCamera("club", Constants.Vision.);
-    // vision.addCamera("diamond", Constants.Vision.);
-    // vision.addCamera("spade", Constants.Vision.);
+    vision.addCamera("heart", Constants.Vision.robotToHeart);
+    vision.addCamera("club", Constants.Vision.robotToClub);
+    vision.addCamera("diamond", Constants.Vision.robotToDiamond);
+    vision.addCamera("spade", Constants.Vision.robotToSpade);
 
     // Warmup PathPlanner to avoid Java pauses
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());

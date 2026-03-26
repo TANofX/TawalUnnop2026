@@ -170,39 +170,39 @@ public final class Constants {
 
   public static final class Vision {
     public static final Transform3d robotToHeart = new Transform3d(
-                                                        new Translation3d( Units.inchesToMeters(-18.344), //-13.492 X
-                                                                           Units.inchesToMeters(15.621), //9.921, 11.574 Y
-                                                                           Units.inchesToMeters(21.5)),
+                                                        new Translation3d( Units.inchesToMeters(-0.300), //CAD is correct for signs
+                                                                           Units.inchesToMeters(-8.414), 
+                                                                           Units.inchesToMeters(20.743)),
                                                         new Rotation3d(0.0, 
-                                                                        Units.degreesToRadians(12.0), 
-                                                                        Units.degreesToRadians(110.5))                                                     
+                                                                        Units.degreesToRadians(-10.0), 
+                                                                        Units.degreesToRadians(0.0))                                                     
                                                         );
 
-    public static final Transform3d robotToDiamond = new Transform3d(
-                                                        new Translation3d( Units.inchesToMeters(2.60), //-7.486
-                                                                           Units.inchesToMeters(15.7), 
-                                                                           Units.inchesToMeters(21.5)),
+    public static final Transform3d robotToDiamond = new Transform3d( //CAD is correct for signs
+                                                        new Translation3d( Units.inchesToMeters(-12.655), //-7.486
+                                                                           Units.inchesToMeters(-9.979), 
+                                                                           Units.inchesToMeters(20.743)),
                                                         new Rotation3d(0.0, 
-                                                                        Units.degreesToRadians(12), 
-                                                                        Units.degreesToRadians(66.80))                                                     
+                                                                        Units.degreesToRadians(-10.0), 
+                                                                        Units.degreesToRadians(-90.0))                                                     
                                                         );
 
-    public static final Transform3d robotToClub = new Transform3d( 
-                                                        new Translation3d( Units.inchesToMeters(2.60), //5.486, 7.486
-                                                                           Units.inchesToMeters(-15.7), //-9.921 //-21/545
-                                                                           Units.inchesToMeters(21.5)),
+    public static final Transform3d robotToClub = new Transform3d( //CAD is incorrect for x/y signs
+                                                        new Translation3d( Units.inchesToMeters(-14.230), //5.486, 7.486
+                                                                           Units.inchesToMeters(8.386), //-9.921 //-21/545
+                                                                           Units.inchesToMeters(20.743)),
                                                         new Rotation3d(0.0, //0.0 
-                                                                        Units.degreesToRadians(12.0), //10.0
-                                                                        Units.degreesToRadians(-70.25))   //-67.269                                                  
+                                                                        Units.degreesToRadians(-10.0), //10.0
+                                                                        Units.degreesToRadians(180.0))   //-67.269                                                  
                                                         );
 
-    public static final Transform3d robotToArudcam = new Transform3d(
-                                                        new Translation3d( Units.inchesToMeters(-17.743), 
-                                                                           Units.inchesToMeters(-15.714), 
-                                                                           Units.inchesToMeters(21.5)),
+    public static final Transform3d robotToSpade = new Transform3d( //the CAD is incorrect for x/y signs
+                                                        new Translation3d( Units.inchesToMeters(-1.865), 
+                                                                           Units.inchesToMeters(9.950), 
+                                                                           Units.inchesToMeters(20.743)),
                                                         new Rotation3d(0.0, 
-                                                                        Units.degreesToRadians(12.0), 
-                                                                        Units.degreesToRadians(-113.75))                                                     
+                                                                        Units.degreesToRadians(-10.0), 
+                                                                        Units.degreesToRadians(90.0))                                                     
                                                         );
 
     public static final Matrix<N3, N1> singleTagStdDevs = VecBuilder.fill(0.5, 0.5, 999999.0); // TODO emperically tune Single Tag StdDevs
