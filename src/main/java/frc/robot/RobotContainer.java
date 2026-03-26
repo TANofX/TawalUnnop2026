@@ -77,7 +77,7 @@ public class RobotContainer {
                                                       () -> new ChassisSpeeds());
   // Vision clients
   // public static final JetsonClient jetson = new JetsonClient();
- public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl);
+ public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl, swerve);
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
   }

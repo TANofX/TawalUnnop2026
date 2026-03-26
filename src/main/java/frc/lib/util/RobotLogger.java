@@ -34,6 +34,7 @@ public class RobotLogger {
         double turretAngle = turret.getAngle().getDegrees();
         double distance = fireControl.getDistanceFromTarget();
         double time = Timer.getFPGATimestamp();
+      
     
         //odmetry stuff :) 
          Pose2d pose = swerve.getPose(); // Get current robot pose yippee 
