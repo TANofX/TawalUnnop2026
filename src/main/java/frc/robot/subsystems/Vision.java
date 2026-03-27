@@ -129,4 +129,10 @@ public final class Vision extends AdvancedSubsystem {
             return curStdDevs;
         }
     }
+
+    @Override
+    public void setPowerLimit(double limit) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setPowerLimit'");
+    }
 }

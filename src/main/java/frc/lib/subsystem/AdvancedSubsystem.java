@@ -108,6 +108,8 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
        BatteryUsage.reportUsage(this.getName() + "/" + device, amps, volts);
   }
 
+  public abstract void setPowerLimit(double limit);
+
   protected void addFault(SubsystemFault fault) {
     if (!this.faults.contains(fault)) {
       this.faults.add(fault);

@@ -29,10 +29,12 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.subsystem.AdvancedSubsystem;
 import frc.robot.Constants;
 
-public class Intake extends SubsystemBase {
+public class Intake extends AdvancedSubsystem {
+  private double powerLimit = 1;
+
   // assuming these are singletons
   private final SparkMax liftMotor;
   private final SparkFlex intakeMotor;
@@ -146,15 +148,15 @@ public class Intake extends SubsystemBase {
   }
 
   public void lowerIntake() {
-    liftMotor.set(intakeLiftSpeed * -1);
+    liftMotor.set((intakeLiftSpeed * -1) * powerLimit);
   }
 
   public void raiseIntake() {
-    liftMotor.set(intakeLiftSpeed);
+    liftMotor.set(intakeLiftSpeed * powerLimit);
   }
 
   public void intakeForward() {
-    intakeMotor.set(intakeSpeed);
+    intakeMotor.set(intakeSpeed * powerLimit);
   }
   public void raiseIntakeToJostle() {
     liftMotor.set(.1);
@@ -168,7 +170,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void intakeBackward() {
-    intakeMotor.set(intakeSpeed * -1);
+    intakeMotor.set((intakeSpeed * -1 * powerLimit));
   }
 
   public void stopLift() {
@@ -193,9 +195,24 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putBoolean("Intake/isUp", isIntakeUp());
 
     SmartDashboard.putNumber("Intake/liftApplied", liftMotor.getAppliedOutput());
-  }
 
-  public Command intakeFuel() {
+    reportPowerUsage(getName(), getTotalVoltage(), getTotalCurrent());
+          }
+        
+          private double getTotalCurrent() {
+        return liftMotor.getOutputCurrent()
+        + intakeMotor.getOutputCurrent();
+      }
+    
+          private double getTotalVoltage() {
+        double total = 0;
+        total += liftMotor.getAppliedOutput() * liftMotor.getBusVoltage();
+        total += intakeMotor.getAppliedOutput() * liftMotor.getBusVoltage();
+
+        return total/2;
+      }
+    
+      public Command intakeFuel() {
     return Commands.startEnd(() -> intakeForward(), () -> stopIntake(), this);
   }
 
@@ -209,5 +226,16 @@ public class Intake extends SubsystemBase {
 
   public Command putUpIntake() {
     return Commands.sequence(Commands.startEnd(() -> raiseIntake(), () -> stopLift(), this).until(() -> isIntakeUp()));
+  }
+
+  @Override
+  protected Command systemCheckCommand() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
+  }
+
+  @Override
+  public void setPowerLimit(double limit) {
+    this.powerLimit = limit;
   }
 }

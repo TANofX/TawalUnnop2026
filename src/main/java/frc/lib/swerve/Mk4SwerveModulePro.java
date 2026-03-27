@@ -230,9 +230,24 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
         rotationAbsoluteVelSignal);
 
     tunePID();
-  }
 
-  @Override
+    // reportPowerUsage(getName(), getTotalCurrent(), getTotalVoltage());
+          }
+        
+          public double getTotalVoltage() {
+        double total = 0;
+        total += driveMotor.getMotorVoltage(true).getValueAsDouble();
+        total += rotationMotor.getMotorVoltage(true).getValueAsDouble();
+
+        return total/2;
+      }
+    
+          public double getTotalCurrent() {
+        return driveMotor.getSupplyCurrent(true).getValueAsDouble()
+        + rotationMotor.getSupplyCurrent(true).getValueAsDouble();
+      }
+    
+      @Override
   public void simulationPeriodic() {
     driveSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     rotationSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
@@ -541,5 +556,11 @@ public class Mk4SwerveModulePro extends AdvancedSubsystem {
                 this))
         .until(() -> !getFaults().isEmpty())
         .andThen(Commands.runOnce(this::stopMotors, this));
+  }
+
+  @Override
+  public void setPowerLimit(double limit) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setPowerLimit'");
   }
 }

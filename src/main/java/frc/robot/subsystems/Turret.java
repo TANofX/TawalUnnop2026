@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import edu.wpi.first.wpilibj2.command.Command;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -21,9 +20,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.lib.subsystem.AdvancedSubsystem;
 import frc.robot.Constants;
 
-public class Turret extends SubsystemBase {
+public class Turret extends AdvancedSubsystem {
     private FireControl controllerOfFire;
     private Transform3d robotToTurret;
     private double numRotations;
@@ -52,7 +52,7 @@ public class Turret extends SubsystemBase {
                 .inverted(true);
 
         turretMotorConfig.closedLoop.pid(Constants.Turret.TURRET_P, Constants.Turret.TURRET_I,
-                Constants.Turret.TURRET_D); // TODO find neede PIDs
+                Constants.Turret.TURRET_D); // TODO find needed PIDs
         turretMotorConfig.closedLoop.feedForward.sva(Constants.Turret.TURRET_kS, Constants.Turret.TURRET_kV,
                 Constants.Turret.TURRET_kA);
         
@@ -144,6 +144,8 @@ public class Turret extends SubsystemBase {
         SmartDashboard.putBoolean(getName() + "/isCalibrated", calibrated);
         SmartDashboard.putBoolean(getName() + "/isAtTarget", isAtTarget());
         // pointToTarget(controllerOfFire.getCurrentTarget()); TODO
+
+        reportPowerUsage(getName(), turretMotor.getOutputCurrent(), turretMotor.getAppliedOutput() * turretMotor.getBusVoltage());
     }
 
     public class TurretSwitch {
@@ -177,5 +179,17 @@ public class Turret extends SubsystemBase {
         public double getCountClock() {
             return countClockPos;
         }
+    }
+
+    @Override
+    protected Command systemCheckCommand() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
+    }
+
+    @Override
+    public void setPowerLimit(double limit) {
+        turretMotorConfig.closedLoop.outputRange(-limit, limit);
+        turretMotor.configure(turretMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 }

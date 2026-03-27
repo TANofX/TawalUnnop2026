@@ -41,6 +41,8 @@ import frc.robot.Constants;
 import frc.robot.util.RobotPoseLookup;
 
 public final class Swerve extends AdvancedSubsystem {
+  private double powerLimit = 1;
+
   protected final SwerveDrivePoseEstimator odometry;
   public final SwerveDriveKinematics kinematics;
 
@@ -302,9 +304,28 @@ public final class Swerve extends AdvancedSubsystem {
     double runtimeMS = (Timer.getFPGATimestamp() - startTime) * 1000;
     SmartDashboard.putNumber("Swerve/PeriodicRuntime", runtimeMS);
 
-  }
+    reportPowerUsage(getName(), getTotalCurrent(), getTotalVoltage());
+          }
+        
+          private double getTotalCurrent() {
+        double total = 0;
+        for (Mk4SwerveModulePro m : modules) {
+          total += m.getTotalCurrent();
+        }
 
-  @Override
+        return total;
+      }
+    
+          private double getTotalVoltage() {
+        double total = 0;
+        for (Mk4SwerveModulePro m : modules) {
+          total += m.getTotalVoltage();
+        }
+
+        return total/modules.length;
+      }
+    
+      @Override
   public void simulationPeriodic() {
     ChassisSpeeds currentSpeeds = kinematics.toChassisSpeeds(getStates());
     double currentYaw = getYaw().getDegrees();
@@ -336,7 +357,7 @@ public final class Swerve extends AdvancedSubsystem {
   }
 
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    SwerveModuleState[] targetStates = kinematics.toSwerveModuleStates(speeds);
+    SwerveModuleState[] targetStates = kinematics.toSwerveModuleStates(speeds.times(powerLimit));
 
     SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, Mk4SwerveModulePro.DRIVE_MAX_VEL);
 
@@ -344,7 +365,7 @@ public final class Swerve extends AdvancedSubsystem {
   }
 
   public void driveRobotRelativeWithFF(ChassisSpeeds speeds, DriveFeedforwards ff) {
-    SwerveModuleState[] targetStates = kinematics.toSwerveModuleStates(speeds);
+    SwerveModuleState[] targetStates = kinematics.toSwerveModuleStates(speeds.times(powerLimit));
 
     SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, Mk4SwerveModulePro.DRIVE_MAX_VEL);
 
@@ -570,6 +591,11 @@ public final class Swerve extends AdvancedSubsystem {
                 || !modules[2].getFaults().isEmpty()
                 || !modules[3].getFaults().isEmpty())
         .andThen(Commands.runOnce(() -> driveFieldRelative(new ChassisSpeeds()), this));
+  }
+
+  @Override
+  public void setPowerLimit(double limit) {
+    this.powerLimit = limit;
   }
 
   /*
