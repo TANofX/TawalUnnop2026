@@ -91,7 +91,7 @@ public class Indexer extends AdvancedSubsystem {
   }
 
   public void indexerForward() {
-    // indexerMotor.set(Constants.Indexer.SPEED); // TODO change to PID
+    // indexerMotor.set(Constants.Indexer.SPEED);
     indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
     agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
