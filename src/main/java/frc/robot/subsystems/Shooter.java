@@ -7,8 +7,8 @@ package frc.robot.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode; // Import the new global ResetMode
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -16,7 +16,8 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
-
+import com.revrobotics.ResetMode;   // Import the new global ResetMode
+import com.revrobotics.PersistMode;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;

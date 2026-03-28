@@ -130,6 +130,7 @@ public final class Constants {
   public static final Rectangle2d RED_ALLIANCE_ZONE = new Rectangle2d(
       new Translation2d(Units.inchesToMeters(469.11), 0.0),
       new Translation2d(Units.inchesToMeters(651.22), Units.inchesToMeters(317.69)));
+  public static final double HOOD_ANGLE = 0; //TODO hood angle
 
   public static final class Joystick {
 
