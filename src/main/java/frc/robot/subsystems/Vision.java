@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.subsystem.AdvancedSubsystem;
@@ -81,7 +82,9 @@ public final class Vision extends AdvancedSubsystem {
                             var estStdDevs = updateStdDevs(estimator, estimate, result.getTargets());
                             ;
 
-                            consumer.accept(estimate.estimatedPose.toPose2d(), estimate.timestampSeconds, estStdDevs);
+                            Pose2d estimatedPose = estimate.estimatedPose.toPose2d();
+                            SmartDashboard.putNumberArray("Vision/" + cam.getName() + "/estimatedPose", new double[] {estimatedPose.getX(), estimatedPose.getY(), estimatedPose.getRotation().getDegrees()});
+                            consumer.accept(estimatedPose, estimate.timestampSeconds, estStdDevs);
                         });
             }
             // estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
