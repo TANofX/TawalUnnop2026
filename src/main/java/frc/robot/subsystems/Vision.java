@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -13,6 +14,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -24,15 +26,17 @@ import frc.robot.Constants;
 public final class Vision extends AdvancedSubsystem {
     private final ArrayList<VisionCamera> cameras = new ArrayList<>();
     private final VisionConsumer consumer;
+    private final Supplier<Pose2d> robotPose;
 
-    public Vision(VisionConsumer consumer) {
+    public Vision(VisionConsumer consumer, Supplier<Pose2d> robotPose) {
         this.consumer = consumer;
+        this.robotPose = robotPose;
     }
 
     @Override
     public void periodic() {
         for (VisionCamera v : cameras) {
-            v.estimatePose();
+            v.estimatePose(robotPose.get().getTranslation());
         }
     }
 
@@ -45,9 +49,11 @@ public final class Vision extends AdvancedSubsystem {
         return Commands.none();
     }
 
+
     public static interface VisionConsumer {
         public void accept(Pose2d visionRobotPoseMeters, double timestampSeconds,
-                Matrix<N3, N1> visionMeasurementStdDevs); //TODO latency between photonvision timestamp and Roborio clock
+                Matrix<N3, N1> visionMeasurementStdDevs); // TODO latency between photonvision timestamp and Roborio
+                                                          // clock
     }
 
     private class VisionCamera {
@@ -62,9 +68,10 @@ public final class Vision extends AdvancedSubsystem {
                     Constants.apriltagLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     robotToCam);
+
         }
 
-        public void estimatePose() {
+        public void estimatePose(Translation2d robotPosition) {
             Optional<EstimatedRobotPose> visionEst = Optional.empty();
             PhotonCamera camera = cam;
             PhotonPoseEstimator estimator = this.estimator;
@@ -80,11 +87,13 @@ public final class Vision extends AdvancedSubsystem {
                         estimate -> {
                             // Change our trust in the measurement based on the tags we can see
                             var estStdDevs = updateStdDevs(estimator, estimate, result.getTargets());
-                            ;
-
                             Pose2d estimatedPose = estimate.estimatedPose.toPose2d();
-                            SmartDashboard.putNumberArray("Vision/" + cam.getName() + "/estimatedPose", new double[] {estimatedPose.getX(), estimatedPose.getY(), estimatedPose.getRotation().getDegrees()});
-                            consumer.accept(estimatedPose, estimate.timestampSeconds, estStdDevs);
+                            SmartDashboard.putNumberArray("Vision/" + cam.getName() + "/estimatedPose",
+                                    new double[] { estimatedPose.getX(), estimatedPose.getY(),
+                                            estimatedPose.getRotation().getDegrees() });
+                            if (estimatedPose.getTranslation().getDistance(robotPosition) < 1.0) {
+                                consumer.accept(estimatedPose, estimate.timestampSeconds, estStdDevs);
+                            }
                         });
             }
             // estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
@@ -126,7 +135,7 @@ public final class Vision extends AdvancedSubsystem {
                 if (numTags == 1 && avgDist > 4)
                     estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
                 else
-                    estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 30));
+                    estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 4));
                 curStdDevs = estStdDevs;
             }
             return curStdDevs;

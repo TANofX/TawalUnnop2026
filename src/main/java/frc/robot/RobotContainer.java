@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -44,6 +46,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
+import frc.robot.util.RobotPoseLookup;
 
 public class RobotContainer {
   // Define set points for shooting if autos fail
@@ -75,13 +78,14 @@ public class RobotContainer {
 
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public static final PowerDistribution powerDistribution = new PowerDistribution();
+  public static final Supplier<Pose2d> robotPose = () -> drivetrain.getState().Pose;
   public static final Vision vision = new Vision(
       (visionPose, timestamp, stdDevs) -> {
         drivetrain.addVisionMeasurement(
             visionPose,
             timestamp,
             VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
-      });
+      }, robotPose);
 
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
       Constants.Intake.INTAKE_MOTOR_ID);
@@ -151,8 +155,8 @@ public class RobotContainer {
     // SmartDashboard.putData("Autos", autoChooser());
 
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
-    turret.setDefaultCommand(
-        Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
+    // turret.setDefaultCommand(
+    //     Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
     
     // Note that X is defined as forward according to WPILib convention,
     // and Y is defined as to the left according to WPILib convention.
