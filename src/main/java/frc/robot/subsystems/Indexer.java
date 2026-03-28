@@ -16,21 +16,22 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.subsystem.AdvancedSubsystem;
 import frc.robot.Constants;
 
 public class Indexer extends AdvancedSubsystem {
   private final SparkFlex indexerMotor;
+  private final SparkFlex agitatorMotor;
   private final SparkFlexConfig indexerMotorConfig;
+  private final SparkFlexConfig agitatorMotorConfig;
   private final SparkClosedLoopController indexerMotorController;
+  private final SparkClosedLoopController agitatorMotorController;
 
   private final SparkFlexSim flexSim;
 
@@ -41,10 +42,13 @@ public class Indexer extends AdvancedSubsystem {
           Constants.Indexer.INDEXER_GEAR_RATIO),
       DCMotor.getNeoVortex(1));
 
-  public Indexer(int indexerMotorID) {
+  public Indexer(int indexerMotorID, int agitatorMotorID) {
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
+    agitatorMotor = new SparkFlex(agitatorMotorID, MotorType.kBrushless);
     indexerMotorController = indexerMotor.getClosedLoopController();
+    agitatorMotorController = agitatorMotor.getClosedLoopController();
     indexerMotorConfig = new SparkFlexConfig();
+    agitatorMotorConfig = new SparkFlexConfig();
     indexerMotorConfig.closedLoop.feedForward.sva(Constants.Indexer.INDEXER_kS, Constants.Indexer.INDEXER_kV,
         Constants.Indexer.INDEXER_kA);
     indexerMotorConfig.closedLoop.pid(Constants.Indexer.INDEXER_P, Constants.Indexer.INDEXER_I,
@@ -55,9 +59,22 @@ public class Indexer extends AdvancedSubsystem {
         .voltageCompensation(Constants.Indexer.VOLTAGE_LIMIT)
         .inverted(true);
     indexerMotor.configure(indexerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    agitatorMotorConfig.closedLoop.feedForward.sva(Constants.Indexer.INDEXER_kS, Constants.Indexer.INDEXER_kV,
+        Constants.Indexer.INDEXER_kA);
+    agitatorMotorConfig.closedLoop.pid(Constants.Indexer.INDEXER_P, Constants.Indexer.INDEXER_I,
+        Constants.Indexer.INDEXER_D);
+    agitatorMotorConfig
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(Constants.Indexer.CURRENT_LIMIT)
+        .voltageCompensation(Constants.Indexer.VOLTAGE_LIMIT)
+        .inverted(true);
+    agitatorMotor.configure(agitatorMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
     flexSim = new SparkFlexSim(indexerMotor, DCMotor.getNeoVortex(1));
   }
 
+  // Only simulates the regular index motor
   @Override
   public void simulationPeriodic() {
     indexerWheelSimulator.setInput(flexSim.getAppliedOutput() * RoboRioSim.getVInVoltage());
@@ -76,19 +93,26 @@ public class Indexer extends AdvancedSubsystem {
   public void indexerForward() {
     // indexerMotor.set(Constants.Indexer.SPEED); // TODO change to PID
     indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
     // indexerMotor.set(Constants.Indexer.SPEED * -1);
     indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(-4000, ControlType.kVelocity);
   }
 
   public void stopIndexer() {
     indexerMotor.stopMotor();
+    agitatorMotor.stopMotor();
   }
 
   public double getMotorRPM() {
     return indexerMotor.getEncoder().getVelocity();
+  }
+
+  public double getAgitatorRPM() {
+    return agitatorMotor.getEncoder().getVelocity();
   }
 
   public Command shootFuel() {

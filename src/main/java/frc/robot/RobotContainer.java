@@ -59,7 +59,7 @@ public class RobotContainer {
       });
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
       Constants.Intake.INTAKE_MOTOR_ID);
-  public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID);
+  public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID, Constants.Indexer.AGITATOR_MOTOR_ID);
   public static final Turret turret = new Turret("Turret", Constants.Turret.TURRET_MOTOR_ID,
       Constants.Turret.Turret_HALL_EFFECT_ID, null); // TODO obtain transform from robot to turret
   public static final Shooter shooter = new Shooter(
