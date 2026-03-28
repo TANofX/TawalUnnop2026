@@ -5,13 +5,16 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.sim.SparkFlexSim;
+import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.LimitSwitchConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.LimitSwitchConfig.Behavior;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -31,65 +34,68 @@ import frc.robot.Constants;
 
 public class Intake extends SubsystemBase {
   // assuming these are singletons
-  private final SparkFlex liftMotor;
+  private final SparkMax liftMotor;
   private final SparkFlex intakeMotor;
   private final SparkLimitSwitch liftLimitSwitchUp;
   private final SparkLimitSwitch liftLimitSwitchDown;
 
   private final SparkFlexConfig intakeMotorConfig;
   private final LimitSwitchConfig liftLimitSwitchConfig;
-  private final SparkFlexConfig liftMotorConfig;
+  private final SparkMaxConfig liftMotorConfig;
 
   private final double intakeLiftSpeed;
   private final double intakeSpeed;
 
-  private final SparkFlexSim flexSim;
+  private final SparkMaxSim flexSim;
   private final SparkFlexSim intakeMotorSim;
 
   private final SingleJointedArmSim liftSimulator = new SingleJointedArmSim(
-    DCMotor.getNeoVortex(1),
-    Constants.Intake.LIFT_MOTOR_GEARING,
-    Constants.Intake.LIFT_JKMETERS_SQUARED,
-    Constants.Intake.INTAKE_REACH_METERS,
-    Constants.Intake.LIFT_MIN_RADIANS,
-    Constants.Intake.LIFT_MAX_RADIANS,
-    true,
-    Constants.Intake.LIFT_MIN_RADIANS
-  );
-  private final FlywheelSim intakeWheelSimulator = new FlywheelSim(
-    LinearSystemId.createFlywheelSystem(
       DCMotor.getNeoVortex(1),
-      Constants.Intake.WHEEL_MOMENT_OF_INERTIA,
-      Constants.Intake.INTAKE_GEAR_RATIO),
-      DCMotor.getNeoVortex(1)
-  );
+      Constants.Intake.LIFT_MOTOR_GEARING,
+      Constants.Intake.LIFT_JKMETERS_SQUARED,
+      Constants.Intake.INTAKE_REACH_METERS,
+      Constants.Intake.LIFT_MIN_RADIANS,
+      Constants.Intake.LIFT_MAX_RADIANS,
+      true,
+      Constants.Intake.LIFT_MIN_RADIANS);
+  private final FlywheelSim intakeWheelSimulator = new FlywheelSim(
+      LinearSystemId.createFlywheelSystem(
+          DCMotor.getNeoVortex(1),
+          Constants.Intake.WHEEL_MOMENT_OF_INERTIA,
+          Constants.Intake.INTAKE_GEAR_RATIO),
+      DCMotor.getNeoVortex(1));
 
-  public Intake() {
-    liftMotor = new SparkFlex(Constants.Intake.INTAKE_LIFT_MOTOR_ID, MotorType.kBrushless);
-    intakeMotor = new SparkFlex(Constants.Intake.INTAKE_MOTOR_ID, MotorType.kBrushless);
+  public Intake(int liftMotorID, int intakeMotorID) {
+    liftMotor = new SparkMax(liftMotorID, MotorType.kBrushless);
+    intakeMotor = new SparkFlex(intakeMotorID, MotorType.kBrushless);
 
     liftLimitSwitchConfig = new LimitSwitchConfig();
     liftLimitSwitchConfig
-      .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-      .forwardLimitSwitchType(Type.kNormallyClosed)
-      .forwardLimitSwitchPosition(25)
-      .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-      .reverseLimitSwitchType(Type.kNormallyClosed)
-      .reverseLimitSwitchPosition(0);
+        .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
+        .forwardLimitSwitchType(Type.kNormallyClosed)
+        .forwardLimitSwitchPosition(25)
+        .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
+        .reverseLimitSwitchType(Type.kNormallyClosed)
+        .reverseLimitSwitchPosition(0);
 
     intakeMotorConfig = new SparkFlexConfig();
     intakeMotorConfig
-      .idleMode(IdleMode.kCoast)
-      .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
-      .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT);
+        .idleMode(IdleMode.kCoast)
+        .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
+        .inverted(true)
+        .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT);
+    intakeMotorConfig.closedLoop.pid(Constants.Intake.INTAKE_P, Constants.Intake.INTAKE_I, Constants.Intake.INTAKE_D);
+    intakeMotorConfig.closedLoop.feedForward.sva(Constants.Intake.INTAKE_kS, Constants.Intake.INTAKE_kV,
+        Constants.Intake.INTAKE_kA);
     intakeMotor.configure(intakeMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    liftMotorConfig = new SparkFlexConfig();
+    liftMotorConfig = new SparkMaxConfig();
     liftMotorConfig
-      .idleMode(IdleMode.kBrake)
-      .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
-      .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
-      .apply(liftLimitSwitchConfig);
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
+        .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
+        .inverted(false)
+        .apply(liftLimitSwitchConfig);
     liftMotor.configure(liftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     liftLimitSwitchUp = liftMotor.getForwardLimitSwitch();
@@ -97,12 +103,12 @@ public class Intake extends SubsystemBase {
     intakeLiftSpeed = Constants.Intake.INTAKE_LIFT_SPEED;
     intakeSpeed = Constants.Intake.INTAKE_SPEED; // Using constant for now
 
-    flexSim = new SparkFlexSim(liftMotor, DCMotor.getNeoVortex(1));
+    flexSim = new SparkMaxSim(liftMotor, DCMotor.getNeoVortex(1));
     intakeMotorSim = new SparkFlexSim(intakeMotor, DCMotor.getNeoVortex(1));
   }
 
   @Override
-  public void simulationPeriodic(){
+  public void simulationPeriodic() {
     liftSimulator.setInput(flexSim.getAppliedOutput() * RoboRioSim.getVInVoltage());
     liftSimulator.update(0.02);
 
@@ -119,70 +125,89 @@ public class Intake extends SubsystemBase {
     }
 
     flexSim.iterate(
-      Units.radiansPerSecondToRotationsPerMinute(liftSimulator.getVelocityRadPerSec() * Constants.Intake.LIFT_MOTOR_GEARING),
-      RoboRioSim.getVInVoltage(),
-      0.02);
+        Units.radiansPerSecondToRotationsPerMinute(
+            liftSimulator.getVelocityRadPerSec() * Constants.Intake.LIFT_MOTOR_GEARING),
+        RoboRioSim.getVInVoltage(),
+        0.02);
 
     intakeWheelSimulator.setInput(intakeMotorSim.getAppliedOutput() * RoboRioSim.getVInVoltage());
     intakeWheelSimulator.update(0.02);
 
     intakeMotorSim.iterate(
-      intakeWheelSimulator.getAngularVelocityRPM() * Constants.Intake.INTAKE_GEAR_RATIO,
-      RoboRioSim.getVInVoltage(),
-      0.02);
-    
-    RoboRioSim.setVInVoltage(BatterySim.calculateDefaultBatteryLoadedVoltage(liftSimulator.getCurrentDrawAmps() + intakeWheelSimulator.getCurrentDrawAmps()));
+        intakeWheelSimulator.getAngularVelocityRPM() * Constants.Intake.INTAKE_GEAR_RATIO,
+        RoboRioSim.getVInVoltage(),
+        0.02);
+
+    RoboRioSim.setVInVoltage(BatterySim.calculateDefaultBatteryLoadedVoltage(
+        liftSimulator.getCurrentDrawAmps() + intakeWheelSimulator.getCurrentDrawAmps()));
 
     SmartDashboard.putNumber("Intake/simulatedAngle", Units.radiansToDegrees(liftSimulator.getAngleRads()));
     SmartDashboard.putNumber("Intake/wheelSpeed", intakeWheelSimulator.getAngularVelocityRPM());
   }
 
-  public void lowerIntake(){
+  public void lowerIntake() {
     liftMotor.set(intakeLiftSpeed * -1);
   }
 
-  public void raiseIntake(){
+  public void raiseIntake() {
     liftMotor.set(intakeLiftSpeed);
   }
 
-  public void intakeForward(){
+  public void intakeForward() {
     intakeMotor.set(intakeSpeed);
   }
+  public void raiseIntakeToJostle() {
+    liftMotor.set(.1);
+  }
+  public void intakeToJostle() {
+    intakeMotor.set(0.2);
+    
+  }
+  public void lowerIntakeManually() {
+    liftMotor.set(-.1);
+  }
 
-  public void intakeBackward(){
+  public void intakeBackward() {
     intakeMotor.set(intakeSpeed * -1);
   }
 
-  public void stopIntake(){
+  public void stopLift() {
+    liftMotor.stopMotor();
+  }
+
+  public void stopIntake() {
     intakeMotor.stopMotor();
   }
 
-  public boolean isIntakeUp(){
+  public boolean isIntakeUp() {
     return liftLimitSwitchUp.isPressed();
   }
 
-  public boolean isIntakeDown(){
+  public boolean isIntakeDown() {
     return liftLimitSwitchDown.isPressed();
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    SmartDashboard.putBoolean("Intake/isDown", isIntakeDown());
+    SmartDashboard.putBoolean("Intake/isUp", isIntakeUp());
+
+    SmartDashboard.putNumber("Intake/liftApplied", liftMotor.getAppliedOutput());
   }
 
-  public Command intakeFuel(){
+  public Command intakeFuel() {
     return Commands.startEnd(() -> intakeForward(), () -> stopIntake(), this);
   }
 
-  public Command extakeFuel(){
+  public Command extakeFuel() {
     return Commands.startEnd(() -> intakeBackward(), () -> stopIntake(), this);
   }
 
-  public Command putDownIntake(){
-    return Commands.runOnce(() -> lowerIntake(), this);
+  public Command putDownIntake() {
+    return Commands.sequence(Commands.startEnd(() -> lowerIntake(), () -> stopLift(), this).until(() -> isIntakeDown()));
   }
 
-  public Command putUpIntake(){
-    return Commands.runOnce(() -> raiseIntake(), this);
+  public Command putUpIntake() {
+    return Commands.sequence(Commands.startEnd(() -> raiseIntake(), () -> stopLift(), this).until(() -> isIntakeUp()));
   }
 }

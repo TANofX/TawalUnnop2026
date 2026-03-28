@@ -4,32 +4,72 @@
 
 package frc.robot;
 
+import java.util.Optional;
+
+import com.ctre.phoenix6.HootAutoReplay;
+
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
+  // Thread m_visionThread;
   private final RobotContainer m_robotContainer;
+
+  /* log and replay timestamp and joystick data */
+  private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
+      .withTimestampReplay()
+      .withJoystickReplay();
+
+  public Optional<Alliance> alliance;
 
   public Robot() {
     m_robotContainer = new RobotContainer();
+    DataLogManager.start();
+    // m_visionThread = new Thread(
+    // () -> {
+    // UsbCamera camera = CameraServer.startAutomaticCapture();
+    // camera.setResolution(640, 480);
+
+    // CvSink cvSink = CameraServer.getVideo();
+    // CvSource outputStream = CameraServer.putVideo("Driver's Cam", 640, 480);
+
+    // Mat mat = new Mat();
+
+    // while (!Thread.interrupted()) {
+    // if (cvSink.grabFrame(mat) == 0) {
+    // outputStream.notifyError(cvSink.getError());
+    // continue;
+    // }
+    // Imgproc.rectangle(
+    // mat, new Point(100, 100), new Point(400, 400), new Scalar(255, 255, 255), 5);
+    // outputStream.putFrame(mat);
+    // }
+    // });
+    // m_visionThread.setDaemon(true);
+    // m_visionThread.start();
   }
 
   @Override
   public void robotPeriodic() {
+    m_timeAndJoystickReplay.update();
     CommandScheduler.getInstance().run();
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+  }
 
   @Override
   public void autonomousInit() {
@@ -41,10 +81,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void autonomousExit() {}
+  public void autonomousExit() {
+  }
 
   @Override
   public void teleopInit() {
@@ -54,10 +96,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
-  public void teleopExit() {}
+  public void teleopExit() {
+  }
 
   @Override
   public void testInit() {
@@ -65,8 +109,10 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void testExit() {}
+  public void testExit() {
+  }
 }
