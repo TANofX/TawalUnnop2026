@@ -72,7 +72,7 @@ public class Turret extends SubsystemBase {
     }
 
     public void turnClockwise() {
-        turretMotor.set(-(Constants.CALISPEED));
+        turretMotor.set(-(Constants.Turret.CALISPEED));
     }
 
     public void calibrateClock() {
@@ -90,7 +90,7 @@ public class Turret extends SubsystemBase {
     }
 
     public void turnCounterClockwise() {
-        turretMotor.set((Constants.CALISPEED));
+        turretMotor.set((Constants.Turret.CALISPEED));
     }
 
     public void stopTurret() {

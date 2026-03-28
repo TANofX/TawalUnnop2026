@@ -16,7 +16,6 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -73,7 +72,7 @@ public class Indexer extends SubsystemBase {
   }
 
   public void indexerForward() {
-    // indexerMotor.set(Constants.Indexer.SPEED); // TODO change to PID
+    // indexerMotor.set(Constants.Indexer.SPEED);
     indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
 
