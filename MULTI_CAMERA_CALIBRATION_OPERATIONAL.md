@@ -225,6 +225,64 @@ All cameras < 0.15m error?
 
 ---
 
+### Step 4b: Calibrate Kalman Filter Standard Deviations (5 minutes)
+
+**The calibration engine automatically calculates recommended measurement standard deviations for the Kalman filter!** These tell the pose estimator how much to trust the vision measurements.
+
+1. **Find the estimated standard deviations on SmartDashboard**:
+   - Look for: `VisionCal/SingleTagStdDevs` - for single AprilTag measurements
+   - Look for: `VisionCal/MultiTagStdDevs` - for multi-tag measurements (more reliable)
+   
+   **Example output**:
+   ```
+   VisionCal/SingleTagStdDevs: [0.235, 0.195, 0.152]
+     → X: 0.235m, Y: 0.195m, Rotation: 0.152 radians
+   
+   VisionCal/MultiTagStdDevs: [0.052, 0.031, 0.142]
+     → X: 0.052m, Y: 0.031m, Rotation: 0.142 radians
+   ```
+
+2. **Understanding the values**:
+   - **Lower numbers** = more confident (tighter constraints) → Kalman filter trusts vision more
+   - **Higher numbers** = less confident (looser constraints) → Kalman filter relies more on odometry
+   - **X and Y** in meters - typically 0.05-0.3m for vision measurements
+   - **Rotation** in radians - typically 0.05-0.3 rad (~3-17 degrees) for vision measurements
+
+3. **Apply these to Constants.java** (Optional but recommended for optimal performance):
+   - File: `src/main/java/frc/robot/Constants.java`
+   - Find section: `Vision.singleTagStdDevs` and `Vision.multiTagStdDevs`
+   
+   **Before** (default tuning):
+   ```java
+   public static final Matrix<N3, N1> singleTagStdDevs = 
+       VecBuilder.fill(0.5, 0.5, 999999.0);
+   public static final Matrix<N3, N1> multiTagStdDevs = 
+       VecBuilder.fill(0.00073, 0.00183, Units.degreesToRadians(0.142));
+   ```
+   
+   **After** (using calibration results from example above):
+   ```java
+   public static final Matrix<N3, N1> singleTagStdDevs = 
+       VecBuilder.fill(0.235, 0.195, Units.radiansToGradians(0.152));
+   public static final Matrix<N3, N1> multiTagStdDevs = 
+       VecBuilder.fill(0.052, 0.031, Units.radiansToGradians(0.142));
+   ```
+
+4. **Redeploy after updating**:
+   ```bash
+   ./gradlew deploy
+   ```
+
+5. **Why this matters**:
+   - Correct standard deviations prevent **vision fighting** (oscillating pose estimates)
+   - Multi-tag measurements are much more accurate → use tighter std devs
+   - Single-tag measurements are less reliable → use looser std devs
+   - If not tuned, the Kalman filter may over-trust or under-trust your vision system
+
+**Note**: Standard deviations are calculated from the error distribution during calibration. If you correct camera transforms (Step 4a), errors should decrease → re-run calibration to get updated std dev recommendations.
+
+---
+
 ### Step 5: Final Verification - Multi-Camera Fusion (10 minutes)
 
 1. **With all 4 cameras enabled and calibrated**, drive robot around field:
@@ -289,7 +347,15 @@ VisionCalibration/heart/DataPoints: 142
 VisionCalibration/heart/Status: "X:0.180m Y:0.120m Rot:2.50°"
 
 [And so on for diamond, spade...]
+
+VisionCal/SingleTagStdDevs: [0.235, 0.195, 0.152]
+  → X: 0.235m, Y: 0.195m, Rotation: 0.152 rad (8.7°)
+
+VisionCal/MultiTagStdDevs: [0.052, 0.031, 0.075]
+  → X: 0.052m, Y: 0.031m, Rotation: 0.075 rad (4.3°)
 ```
+
+**⚠️ Important**: The `SingleTagStdDevs` and `MultiTagStdDevs` are the **estimated measurement standard deviations** for your Kalman filter! See Step 4b to apply these to Constants.java.
 
 ### Live Camera Data (Every Cycle)
 ```
@@ -369,6 +435,11 @@ Vision/Cameras/club/Summary: "club: (3.21, 1.45) rot=45.3° tags=3 dist=2.10m"
 - `VisionCalibration/[name]/MaxYError` - Maximum Y error
 - `VisionCalibration/[name]/DataPoints` - Number of data points collected
 - `VisionCalibration/[name]/Status` - Status string for this camera
+
+**Kalman Filter Tuning** (after calibration completes - **important for odometry accuracy**):
+- `VisionCal/SingleTagStdDevs` - [X, Y, Rotation] array - recommended std devs for single-tag measurements (more conservative)
+- `VisionCal/MultiTagStdDevs` - [X, Y, Rotation] array - recommended std devs for multi-tag measurements (more accurate, tighter bounds)
+- **Use these values in Constants.java Vision.singleTagStdDevs and Vision.multiTagStdDevs** (see Step 4b)
 
 ---
 

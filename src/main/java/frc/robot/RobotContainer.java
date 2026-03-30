@@ -39,6 +39,7 @@ import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
 import frc.robot.commands.ZeroTurret;
+import frc.robot.commands.VisionCalibrationCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
 import frc.robot.subsystems.Indexer;
@@ -46,6 +47,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.VisionCalibrationEngine;
 import frc.robot.util.CalibrationPointsLoader;
 import frc.robot.util.RobotPoseLookup;
 
@@ -87,6 +89,10 @@ public class RobotContainer {
             timestamp,
             VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
       }, robotPose);
+
+  // Vision calibration engine - provides automated calibration and Kalman filter tuning
+  public static final VisionCalibrationEngine visionCalibrationEngine = 
+      new VisionCalibrationEngine(drivetrain, vision);
 
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
       Constants.Intake.INTAKE_MOTOR_ID);
@@ -267,6 +273,15 @@ public class RobotContainer {
    * eliminating the need to hardcode camera names in multiple places.
    */
   private void configureMultiCameraCalibration() {
+    // Vision calibration command - executes automated calibration routine
+    // Operator should place robot at a known position before clicking this button
+    SmartDashboard.putData("Vision/Calibration/Execute (Oriented)",
+        new VisionCalibrationCommand(
+            drivetrain, 
+            visionCalibrationEngine,
+            Pose2d.kZero  // Assumes robot is placed at (0, 0) facing 0°. Adjust as needed for your field.
+        ));
+
     // Display SmartDashboard info on all configured cameras (dynamically)
     SmartDashboard.putData("Vision/Show All Cameras",
         Commands.runOnce(() -> {
