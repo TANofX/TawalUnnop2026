@@ -449,6 +449,33 @@ b) **Operators see** camera health status in real-time
    - Sees VisionCalibration/[camera]/* keys
    - Compares with targets (< 0.15m)
    - Decides if correction needed
+
+---
+
+## Assumptions about simultaneity and data sufficiency
+
+The calibration engine is designed to collect and analyze per-camera, time-stamped measurements over the entire motion window. It does not require multiple cameras to see the same AprilTag at the same instant. Key behaviors and recommended thresholds:
+
+- Per-camera independence: measurements are stored per camera (Map<String, List<CalibrationDataPoint>>). Each camera is analyzed independently.
+- Staggered observations: cameras may observe tags at different times and from different poses; the engine aggregates those to compute mean/max errors for each camera.
+- Minimum data requirements (recommended defaults):
+    - Per-camera minimum observations to consider corrections: 30 (configurable)
+    - Recommended per-camera target for robust stats: 100+ observations
+    - For multi-camera cross-validation, aim for at least 2 cameras with >= 30 points each
+- Missing or sparse data handling:
+    - If a camera has zero or too-few observations, the engine publishes a status for that camera (e.g., NO_DATA or INSUFFICIENT_DATA) and will skip automatic transform correction for it.
+    - The engine will still analyze and publish results for cameras that do have sufficient data.
+- Robust statistics: use trimmed means or medians to reduce sensitivity to outliers when computing per-camera mean errors.
+
+Operational implications:
+
+- Operators do NOT need to make every camera see tags simultaneously — instead, ensure each camera collects enough observations during the spiral motion.
+- If a camera repeatedly has zero data, treat it as a hardware/configuration problem (lens, orientation, PhotonVision pipeline, network).
+
+SmartDashboard keys to watch (already published or recommended additions):
+- `VisionCalibration/NumCamerasWithData` – count of cameras that met the minimum data point threshold
+- `VisionCalibration/[name]/Status` – `OK` | `NO_DATA` | `INSUFFICIENT_DATA` | `HIGH_ERROR`
+
 ```
 
 ---

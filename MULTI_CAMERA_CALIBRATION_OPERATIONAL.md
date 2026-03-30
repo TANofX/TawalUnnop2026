@@ -43,10 +43,11 @@
      - TagsVisible (number of AprilTags detected)
      - Summary (readable format)
 
-4. **Verify all 4 cameras reporting data**
-   - All cameras should have TagsVisible > 0
-   - All positions should be reasonable (no NaN or inf values)
-   - If any camera shows 0 tags: **STOP** and check camera hardware
+4. **Verify cameras reporting live data (note: simultaneity not required)**
+   - Ideally each enabled camera reports TagsVisible > 0 during this check, but it's not required that all cameras see tags at the same instant.
+   - Cameras have different fields of view; occlusions and field layout mean some cameras will only see tags at different robot poses.
+   - All positions should be reasonable (no NaN or inf values).
+   - If a camera shows 0 tags right now this may be normal — what matters is whether the camera accumulates sufficient observations during the full collection window. If a camera reports 0 tags persistently (not just during this quick check), then troubleshoot hardware/network/PhotonVision.
    
    **Expected Output Example**:
    ```
@@ -383,18 +384,22 @@ Vision/Cameras/club/Summary: "club: (3.21, 1.45) rot=45.3° tags=3 dist=2.10m"
 
 ---
 
-## Calibration Success Checklist
+## Calibration Success Checklist (practical)
 
-- [ ] All 4 cameras report live data (Vision/Cameras/[name]/Summary)
-- [ ] All cameras see AprilTags during calibration (TagsVisible > 0)
+- [ ] Each enabled camera reports live data (Vision/Cameras/[name]/Summary) or has been confirmed intentionally disabled.
+- [ ] Each camera accumulates a minimum number of observations during collection (recommended: >= 30 points; target for good stats: 100+). See `VisionCalibration/[name]/DataPoints`.
 - [ ] Calibration collection completes without errors
-- [ ] All 4 cameras have error < 0.15m on X and Y
-- [ ] All 4 cameras have rotation error < 3°
+- [ ] For cameras with sufficient data, X and Y mean error < 0.15m (prefer < 0.10m)
+- [ ] For cameras with sufficient data, rotation error < 3°
 - [ ] Pose moves smoothly during autonomous testing
 - [ ] No large jumps in pose estimate
 - [ ] Autonomous follows paths accurately
 
-**When ALL items checked**: ✅ Calibration successful! Ready for competition.
+Notes:
+- It is not required that all enabled cameras simultaneously see tags — calibration aggregates per-camera measurements over the entire collection run. What matters is sufficient, well-distributed observations per camera.
+- If a camera has zero or very few data points after a collection run, the engine will publish a NO_DATA/INSUFFICIENT_DATA status for that camera and skip transform corrections for it. Troubleshoot such cameras before applying automatic corrections.
+
+**When the practical checklist above is satisfied for the cameras you intend to use**: ✅ Calibration successful! Ready for competition.
 
 ---
 
