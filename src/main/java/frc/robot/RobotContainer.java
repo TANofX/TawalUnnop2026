@@ -40,6 +40,7 @@ import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
 import frc.robot.commands.ZeroTurret;
 import frc.robot.commands.VisionCalibrationCommand;
+import frc.robot.commands.MultiPointVisionCalibrationCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
 import frc.robot.subsystems.Indexer;
@@ -273,14 +274,61 @@ public class RobotContainer {
    * eliminating the need to hardcode camera names in multiple places.
    */
   private void configureMultiCameraCalibration() {
-    // Vision calibration command - executes automated calibration routine
-    // Operator should place robot at a known position before clicking this button
-    SmartDashboard.putData("Vision/Calibration/Execute (Oriented)",
+    // Load calibration points from calibration_points.csv
+    CalibrationPointsLoader calibrationPoints = new CalibrationPointsLoader();
+    
+    // Get the initial position (where robot should be placed)
+    // This is the marked position from calibration_points.csv with initial_position=true
+    Pose2d initialCalibrationPose;
+    try {
+      initialCalibrationPose = calibrationPoints.getInitialPosition();
+    } catch (Exception e) {
+      // Fallback to blue corner if calibration points fail to load
+      System.err.println("Failed to load calibration points: " + e.getMessage());
+      initialCalibrationPose = new Pose2d(1.5, 1.5, Rotation2d.kZero);
+    }
+    
+    // ===== SINGLE-POINT CALIBRATION =====
+    // Vision calibration command - executes automated calibration routine at one location
+    // Operator should place robot at the marked position (typically printed on field or visible in calibration points)
+    SmartDashboard.putData("Vision/Calibration/Execute (Single Point)",
         new VisionCalibrationCommand(
             drivetrain, 
             visionCalibrationEngine,
-            Pose2d.kZero  // Assumes robot is placed at (0, 0) facing 0°. Adjust as needed for your field.
+            initialCalibrationPose
         ));
+
+    // ===== MULTI-POINT CALIBRATION =====
+    // Load all calibration points (including the initial position)
+    java.util.List<Pose2d> allCalibrationPoints;
+    try {
+      allCalibrationPoints = calibrationPoints.getAllCalibrationPoints();
+    } catch (Exception e) {
+      // Fallback to single point if loading fails
+      System.err.println("Failed to load all calibration points: " + e.getMessage());
+      allCalibrationPoints = java.util.List.of(initialCalibrationPose);
+    }
+    
+    // Multi-point calibration command - navigates between calibration points automatically
+    // Operator confirms arrival at each point; robot calibrates then moves to next
+    MultiPointVisionCalibrationCommand multiPointCalibrationCommand = 
+        new MultiPointVisionCalibrationCommand(
+            drivetrain,
+            visionCalibrationEngine,
+            allCalibrationPoints
+        );
+    
+    SmartDashboard.putData("Vision/Calibration/Execute (Multi-Point Grid)",
+        multiPointCalibrationCommand);
+    
+    // Add button for operator confirmation during multi-point calibration
+    // Call this when robot arrives at a calibration point and is ready to start spiral motion
+    // IMPORTANT: Operator must verify robot is at correct marked position before clicking
+    // (typically within ±0.1m and ±3 degrees). Odometry will be reset to this known position.
+    SmartDashboard.putData("Vision/Calibration/Start This Point",
+        Commands.runOnce(() -> {
+          multiPointCalibrationCommand.startCalibrationAtCurrentPoint();
+        }));
 
     // Display SmartDashboard info on all configured cameras (dynamically)
     SmartDashboard.putData("Vision/Show All Cameras",
@@ -338,6 +386,22 @@ public class RobotContainer {
         + "   - Redeploy\n"
         + "   - Recalibrate\n"
         + "5. All cameras < 0.15m? Done!");
+    
+    // Guidance for multi-point calibration workflow
+    SmartDashboard.putString("Vision/MultiPointWorkflow",
+        "Multi-Point Calibration Workflow:\n"
+        + "1. Place robot at first marked position on field (within ±5 inches)\n"
+        + "2. Click 'Vision/Calibration/Execute (Multi-Point Grid)'\n"
+        + "3. Robot navigates autonomously to each point\n"
+        + "   - Navigation uses odometry (may drift)\n"
+        + "4. When robot arrives, verify it's at marked position\n"
+        + "   - Check SmartDashboard DistanceToPoint and RotationError\n"
+        + "5. When confirmed at correct position, click 'Vision/Calibration/Start This Point'\n"
+        + "   - This resets odometry to known position (critical!)\n"
+        + "   - Robot executes 30-second spiral calibration\n"
+        + "6. After spiral completes, robot auto-navigates to next point\n"
+        + "7. Repeat steps 4-6 for all calibration points\n"
+        + "NOTE: Operator verification at each point ensures known starting pose for calibration!");
   }
 
   public Command getAutonomousCommand() {
