@@ -16,22 +16,26 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
  * 
  * Executes vision calibration at multiple field locations with autonomous routing between points.
  * 
+ * IMPORTANT: Robot must be manually placed at the first calibration point before starting.
+ * The command accepts the robot's current position as the known starting location.
+ * 
  * Workflow:
- * 1. Robot autonomously navigates to first calibration point using proportional drive
- * 2. Operator confirms arrival (checks position is acceptable)
+ * 1. Operator places robot at first calibration point and starts this command
+ * 2. Operator clicks "Start This Point" to reset odometry to current position and begin calibration
  * 3. Robot executes spiral calibration motion at that point (30 seconds)
- * 4. Robot autonomously drives to next point
- * 5. Repeats steps 2-4 for all remaining points
+ * 4. Robot autonomously navigates to next point using odometry + proportional drive
+ * 5. Repeats steps 2-3 for all remaining points (operator confirmation at each point)
  * 6. Command completes, all data collected
  * 
  * Safety Features:
- * - Slow proportional drive (0.5 m/s max) during routing
+ * - Operator verification at each point ensures known starting pose for calibration
+ * - Slow proportional drive (0.5 m/s max) during routing between points
  * - Timeout at each point (2 minutes) to prevent indefinite waiting
  * - SmartDashboard feedback showing current point, distance, elapsed time
  * 
  * SmartDashboard Integration:
- * - "Vision Cal: Multi-Point Grid" - Main command button
- * - "Vision Cal: Start This Point" - Confirms arrival and starts calibration at current point
+ * - "Vision/Calibration/Execute (Multi-Point Grid)" - Main command button
+ * - "Vision/Calibration/Start This Point" - Resets odometry and starts calibration at current point
  * - Real-time status: Point number, distance remaining, current state
  */
 public class MultiPointVisionCalibrationCommand extends Command {
@@ -80,11 +84,14 @@ public class MultiPointVisionCalibrationCommand extends Command {
     @Override
     public void initialize() {
         currentPointIndex = 0;
-        sequenceState = State.NAVIGATING_TO_POINT;
+        // START AT FIRST POINT - Robot is already manually placed there
+        // Skip navigation directly to waiting state
+        sequenceState = State.AT_POINT_WAITING;
         stateStartTime = Timer.getFPGATimestamp();
         currentCalibrationCommand = null;
         
-        SmartDashboard.putString("VisionCal/SequenceStatus", "Initializing multi-point calibration");
+        SmartDashboard.putString("VisionCal/SequenceStatus", 
+            "Multi-point calibration ready at Point 1 - Click 'Start This Point' to begin");
         SmartDashboard.putNumber("VisionCal/CurrentPointIndex", currentPointIndex);
         SmartDashboard.putNumber("VisionCal/TotalPoints", calibrationPoints.size());
     }

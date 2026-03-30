@@ -322,9 +322,10 @@ public class RobotContainer {
         multiPointCalibrationCommand);
     
     // Add button for operator confirmation during multi-point calibration
-    // Call this when robot arrives at a calibration point and is ready to start spiral motion
+    // Call this to reset odometry to current position and start calibration spiral
     // IMPORTANT: Operator must verify robot is at correct marked position before clicking
     // (typically within ±0.1m and ±3 degrees). Odometry will be reset to this known position.
+    // This is the critical step that ensures the calibration has an accurate reference frame.
     SmartDashboard.putData("Vision/Calibration/Start This Point",
         Commands.runOnce(() -> {
           multiPointCalibrationCommand.startCalibrationAtCurrentPoint();
@@ -390,18 +391,19 @@ public class RobotContainer {
     // Guidance for multi-point calibration workflow
     SmartDashboard.putString("Vision/MultiPointWorkflow",
         "Multi-Point Calibration Workflow:\n"
-        + "1. Place robot at first marked position on field (within ±5 inches)\n"
-        + "2. Click 'Vision/Calibration/Execute (Multi-Point Grid)'\n"
-        + "3. Robot navigates autonomously to each point\n"
-        + "   - Navigation uses odometry (may drift)\n"
-        + "4. When robot arrives, verify it's at marked position\n"
-        + "   - Check SmartDashboard DistanceToPoint and RotationError\n"
-        + "5. When confirmed at correct position, click 'Vision/Calibration/Start This Point'\n"
-        + "   - This resets odometry to known position (critical!)\n"
+        + "1. Place robot at first marked position on field (within ±5 inches accuracy)\n"
+        + "2. Click 'Vision/Calibration/Execute (Multi-Point Grid)' to start command\n"
+        + "3. Command waits at current position - verify robot is correctly placed\n"
+        + "4. When ready, click 'Vision/Calibration/Start This Point'\n"
+        + "   - This resets odometry to current position (critical!)\n"
         + "   - Robot executes 30-second spiral calibration\n"
-        + "6. After spiral completes, robot auto-navigates to next point\n"
-        + "7. Repeat steps 4-6 for all calibration points\n"
-        + "NOTE: Operator verification at each point ensures known starting pose for calibration!");
+        + "5. After spiral completes, robot autonomously drives to next point\n"
+        + "6. Move robot to next marked position (place it manually)\n"
+        + "7. Click 'Vision/Calibration/Start This Point' again\n"
+        + "   - Odometry resets to current position\n"
+        + "   - Robot calibrates at this point\n"
+        + "8. Repeat steps 5-7 for all remaining calibration points\n"
+        + "NOTE: Manual placement + operator verification ensures accurate calibration!");
   }
 
   public Command getAutonomousCommand() {
