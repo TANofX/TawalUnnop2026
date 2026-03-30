@@ -46,6 +46,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
+import frc.robot.util.CalibrationPointsLoader;
 import frc.robot.util.RobotPoseLookup;
 
 public class RobotContainer {
@@ -139,10 +140,13 @@ public class RobotContainer {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    // vision.addCamera("heart", Constants.Vision.robotToHeart);
+    vision.addCamera("heart", Constants.Vision.robotToHeart);
     vision.addCamera("club", Constants.Vision.robotToClub);
-    // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
-    // vision.addCamera("spade", Constants.Vision.robotToSpade);
+    vision.addCamera("diamond", Constants.Vision.robotToDiamond);
+    vision.addCamera("spade", Constants.Vision.robotToSpade);
+
+    // Configure multi-camera calibration and testing (NEW)
+    configureMultiCameraCalibration();
 
     // Warmup PathPlanner to avoid Java pauses
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
@@ -255,6 +259,70 @@ public class RobotContainer {
 
     return Commands.sequence(new TrenchPosition("left", drivetrain), new CalibrateTurret(turret),
         new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
+  }
+
+  /**
+   * Configure multi-camera calibration and testing buttons for vision system tuning.
+   * These buttons dynamically work with whatever cameras are configured in the Vision subsystem,
+   * eliminating the need to hardcode camera names in multiple places.
+   */
+  private void configureMultiCameraCalibration() {
+    // Display SmartDashboard info on all configured cameras (dynamically)
+    SmartDashboard.putData("Vision/Show All Cameras",
+        Commands.runOnce(() -> {
+          for (String cameraName : vision.getCameraNames()) {
+            var measurement = vision.getCameraMeasurement(cameraName);
+            if (measurement.isPresent()) {
+              var m = measurement.get();
+              SmartDashboard.putString("Vision/" + cameraName + "/DetailedInfo", m.toString());
+            } else {
+              SmartDashboard.putString("Vision/" + cameraName + "/DetailedInfo", 
+                  cameraName + ": [No measurement this frame]");
+            }
+          }
+          SmartDashboard.putString("Vision/CamerasRefreshed", 
+              "✓ All " + vision.getCameraNames().size() + " cameras displayed");
+        }));
+
+    // Display current camera configuration
+    SmartDashboard.putData("Vision/Config/Refresh",
+        Commands.runOnce(() -> {
+          var cameraNames = vision.getCameraNames();
+          SmartDashboard.putNumber("Vision/NumEnabledCameras", cameraNames.size());
+          SmartDashboard.putStringArray("Vision/EnabledCameras", cameraNames.toArray(new String[0]));
+          SmartDashboard.putString("Vision/ConfigStatus", 
+              "Enabled cameras: " + String.join(", ", cameraNames));
+        }));
+
+    // Per-camera calibration status board (dynamically populated)
+    SmartDashboard.putData("Vision/Calibration/Show Results",
+        Commands.runOnce(() -> {
+          SmartDashboard.putString("Vision/CalibrationStatus/Title", 
+              "=== Per-Camera Calibration Results ===");
+          
+          // Dynamically publish results for all configured cameras
+          for (String cameraName : vision.getCameraNames()) {
+            String path = "Vision/CalibrationStatus/" + cameraName;
+            SmartDashboard.putString(path, 
+                "Camera '" + cameraName + "': Check VisionCalibration/" + cameraName + "/* keys");
+          }
+          
+          SmartDashboard.putString("Vision/CalibrationStatus/Instructions", 
+              "Review per-camera calibration data: Vision/Cameras/* paths show live data\n"
+              + "Calibration results: VisionCalibration/* paths show calibration session results");
+        }));
+
+    // Guidance on multi-camera workflow
+    SmartDashboard.putString("Vision/WorkflowGuide", 
+        "Multi-Camera Workflow:\n"
+        + "1. Check Vision/Cameras/* for live camera data\n"
+        + "2. Run calibration command\n"
+        + "3. Review per-camera errors: VisionCalibration/[camera]/MeanXError, etc\n"
+        + "4. If any camera error > 0.15m:\n"
+        + "   - Edit Constants.Vision.robotTo[Camera]\n"
+        + "   - Redeploy\n"
+        + "   - Recalibrate\n"
+        + "5. All cameras < 0.15m? Done!");
   }
 
   public Command getAutonomousCommand() {

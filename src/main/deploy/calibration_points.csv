@@ -1,0 +1,46 @@
+# Calibration Points Configuration
+# Used by VisionCalibrationEngine to define where to collect vision calibration data
+# Format: name, x_meters, y_meters, rotation_degrees, initial_position
+# 
+# Columns:
+#   name: Unique identifier for this calibration point (e.g., BLUE_CORNER, CENTER)
+#   x_meters: Field X coordinate in meters (0-8.2 typical)
+#   y_meters: Field Y coordinate in meters (0-4.1 typical)
+#   rotation_degrees: Robot heading in degrees (0=facing red side, 180=facing blue side)
+#   initial_position: true if this is the calibration starting/reset position, false otherwise
+#
+# Usage:
+#   - Exactly ONE point must have initial_position=true (your reference position)
+#   - All other points (initial_position=false) are relative to this reference
+#   - Robot will reset odometry to this position before starting calibration
+#
+# Field Coordinate System (2026):
+#   Blue Alliance: X increases toward red (0-8.2m), Y increases left (0-4.1m)
+#   Red Alliance: Mirrored (automatic via PathPlanner)
+#   Z = up (not used in 2D calibration)
+#
+# Example Configurations:
+#   Single-Point (Blue Corner):
+#     BLUE_CORNER,1.5,1.5,0,true      <- Reset to this point
+#   
+#   9-Point Grid (Comprehensive Field Coverage):
+#     Point 1: BLUE_CORNER_LOW,1.5,1.5,0,true       <- Reset here
+#     Points 2-9: Surrounding locations with false
+#
+# Safety Constraints:
+#   - Multi-point calibration uses proportional drive (0.5 m/s max)
+#   - Robot bounded to 1.5m radius from initial position during spiral
+#   - If point is > 0.5m from previous, multi-point will auto-navigate
+#
+# Last Updated: 2026-03-30
+
+name,x_meters,y_meters,rotation_degrees,initial_position
+BLUE_CORNER_LOW,1.5,1.5,0,true
+BLUE_SIDE_MID_LOW,4.1,1.5,0,false
+RED_CORNER_LOW,6.7,1.5,0,false
+RED_SIDE_MID,6.7,4.1,180,false
+RED_CORNER_HIGH,6.7,6.7,180,false
+RED_SIDE_MID_HIGH,4.1,6.7,180,false
+BLUE_CORNER_HIGH,1.5,6.7,0,false
+BLUE_SIDE_MID_HIGH,1.5,4.1,0,false
+CENTER,4.1,4.1,0,false
