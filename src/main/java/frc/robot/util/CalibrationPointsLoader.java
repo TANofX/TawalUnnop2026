@@ -29,10 +29,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * 
  * File Format: calibration_points.csv in deploy directory
  * - name: Unique point identifier (e.g., BLUE_CORNER_LOW, CENTER)
- * - x_meters: Field X coordinate
- * - y_meters: Field Y coordinate  
- * - rotation_degrees: Robot heading
- * - initial_position: true if this is the reset position, false otherwise
+ * - x_meters: ABSOLUTE field X coordinate (0-8.2m typical)
+ * - y_meters: ABSOLUTE field Y coordinate (0-4.1m typical)
+ * - rotation_degrees: Robot heading in degrees
+ * - initial_position: true if this is the starting calibration point, false otherwise
+ * 
+ * IMPORTANT: All points are ABSOLUTE field coordinates, not relative offsets
+ * - The point with initial_position=true is where you manually place robot first
+ * - All other points are absolute locations on the field for multi-point calibration
+ * - Operator must manually move robot between calibration points (they're not offset positions)
  * 
  * CRITICAL: Exactly one point must have initial_position=true
  */

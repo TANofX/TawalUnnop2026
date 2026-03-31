@@ -10,9 +10,10 @@
 #   initial_position: true if this is the calibration starting/reset position, false otherwise
 #
 # Usage:
-#   - Exactly ONE point must have initial_position=true (your reference position)
-#   - All other points (initial_position=false) are relative to this reference
-#   - Robot will reset odometry to this position before starting calibration
+#   - Exactly ONE point must have initial_position=true (your starting/reference position)
+#   - All other points (initial_position=false) are ABSOLUTE field positions
+#   - Robot will reset odometry at each point when operator clicks "Start This Point"
+#   - After calibrating at each point, robot navigates to next point using odometry + proportional drive
 #
 # Field Coordinate System (2026):
 #   Blue Alliance: X increases toward red (0-8.2m), Y increases left (0-4.1m)
@@ -28,9 +29,10 @@
 #     Points 2-9: Surrounding locations with false
 #
 # Safety Constraints:
-#   - Multi-point calibration uses proportional drive (0.5 m/s max)
-#   - Robot bounded to 1.5m radius from initial position during spiral
-#   - If point is > 0.5m from previous, multi-point will auto-navigate
+#   - Multi-point calibration uses proportional drive (0.5 m/s max) to navigate between points
+#   - Each calibration point is marked/placed manually (not relative offsets)
+#   - Robot bounded to 1.5m radius from current position during spiral
+#   - Operator must verify position and click "Start This Point" at each location
 #
 # Last Updated: 2026-03-30
 
