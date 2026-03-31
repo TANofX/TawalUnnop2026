@@ -43,6 +43,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.PowerManagement;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
@@ -76,6 +77,7 @@ public class RobotContainer {
 
   private final CommandXboxController joystick = new CommandXboxController(0);
 
+  public static final PowerManagement powerManager = new PowerManagement();
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public static final PowerDistribution powerDistribution = new PowerDistribution();
   public static final Supplier<Pose2d> robotPose = () -> drivetrain.getState().Pose;

@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.subsystem.AdvancedSubsystem;
 import frc.lib.util.BatteryUsage;
@@ -34,6 +35,8 @@ public class PowerManagement extends SubsystemBase {
     for (AdvancedSubsystem a : subsystemList.values()) {
       a.setPowerLimit(powerLimit);
     }
+
+    SmartDashboard.putNumber("PowerManagment/totalCurrent", totalCurrent);
   }
 
   public void addSubsystem(AdvancedSubsystem subsystem) {

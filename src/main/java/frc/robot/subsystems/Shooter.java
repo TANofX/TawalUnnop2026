@@ -218,6 +218,8 @@ public class Shooter extends AdvancedSubsystem {
 
   // setting the shooter rpm based off of the table
   public void setShooterRPM(double topRPM, double bottomRPM) {
+    bottomRPM /= 2.0;
+
     topTargetRPM = topRPM * powerLimit;
     bottomTargetRPM = bottomRPM * powerLimit;
 
