@@ -35,6 +35,7 @@ import frc.lib.swerve.TunerConstants;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
+import frc.robot.commands.AutoShooter;
 import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
@@ -123,12 +124,13 @@ public class RobotContainer {
   // }
 
   public RobotContainer() {
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Mode", autoChooser);
+    NamedCommands.registerCommand("Shoot", AutoShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
+    NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+    
     
   // Register Named PathPlanner Commands
-  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(()->fireControl.getCurrentTarget(),()-> fireControl.getShooterRpm()));
-  NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+  // NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> rightClimbAngle, () -> rightClimbRPM));
+  // NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
 
     configureButtonBindings();
@@ -143,11 +145,12 @@ public class RobotContainer {
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
 
     //r to avoid Java pauses
-    CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+    // CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
   private void configureButtonBindings() {
-    coDriver.START();
     SmartDashboard.putData(new ZeroTurret(turret));
     SmartDashboard.putData(new CalibrateTurret(turret));
     // SmartDashboard.putData("Autos", autoChooser());
@@ -195,6 +198,11 @@ public class RobotContainer {
         new FixedShooter(shooter, turret, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
+  
+  private Command AutoShooterCommand(java.util.function.Supplier<Rotation2d> turretAngle, DoubleSupplier targetRPM) {
+    return Commands.sequence(new CalibrateTurret(turret),
+        new AutoShooter(shooter, turret, targetRPM, turretAngle).withTimeout(10).finallyDo(() -> {shooter.stopShooterMotors(); indexer.stopIndexer();}));
+  }
 private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
