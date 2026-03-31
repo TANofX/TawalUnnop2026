@@ -40,6 +40,8 @@ import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
 import frc.robot.commands.ZeroTurret;
 import frc.robot.commands.VisionCalibrationCommand;
+import frc.robot.commands.VisionTransformEstimationCommand;
+import frc.robot.commands.CalibrationPointsValidationCommand;
 import frc.robot.commands.MultiPointVisionCalibrationCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
@@ -83,12 +85,21 @@ public class RobotContainer {
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public static final PowerDistribution powerDistribution = new PowerDistribution();
   public static final Supplier<Pose2d> robotPose = () -> drivetrain.getState().Pose;
+  
+  // Flag to disable vision updates during calibration
+  // When true, vision measurements are NOT applied to the drivetrain
+  // This ensures clean odometry-only testing during vision calibration
+  public static boolean disableVisionUpdates = false;
+  
   public static final Vision vision = new Vision(
       (visionPose, timestamp, stdDevs) -> {
-        drivetrain.addVisionMeasurement(
-            visionPose,
-            timestamp,
-            VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
+        // Skip vision updates if calibration is in progress
+        if (!disableVisionUpdates) {
+          drivetrain.addVisionMeasurement(
+              visionPose,
+              timestamp,
+              VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
+        }
       }, robotPose);
 
   // Vision calibration engine - provides automated calibration and Kalman filter tuning
@@ -288,10 +299,22 @@ public class RobotContainer {
       initialCalibrationPose = new Pose2d(1.5, 1.5, Rotation2d.kZero);
     }
     
-    // ===== SINGLE-POINT CALIBRATION =====
-    // Vision calibration command - executes automated calibration routine at one location
-    // Operator should place robot at the marked position (typically printed on field or visible in calibration points)
-    SmartDashboard.putData("Vision/Calibration/Execute (Single Point)",
+    // ===== PHASE 1: TRANSFORM ESTIMATION =====
+    // Vision transform estimation command - estimates camera mount errors
+    // Operator places robot at marked position, command collects data and analyzes
+    // Produces SmartDashboard values for camera transform corrections
+    SmartDashboard.putData("Vision/Cal/Phase1_EstimateTransforms",
+        new VisionTransformEstimationCommand(
+            drivetrain, 
+            visionCalibrationEngine,
+            initialCalibrationPose
+        ));
+    
+    // ===== PHASE 2: STANDARD DEVIATION ESTIMATION =====
+    // (Using renamed "Single Point" command - now Phase 2 of two-phase approach)
+    // After operator manually updates Constants.Vision with transform corrections
+    // and recompiles, this command estimates measurement std devs
+    SmartDashboard.putData("Vision/Cal/Phase2_EstimateStdDevs",
         new VisionCalibrationCommand(
             drivetrain, 
             visionCalibrationEngine,
@@ -330,6 +353,15 @@ public class RobotContainer {
         Commands.runOnce(() -> {
           multiPointCalibrationCommand.startCalibrationAtCurrentPoint();
         }));
+
+    // Calibration points validation command
+    // Drives robot through each calibration point in calibration_points.csv
+    // Allows operator to verify field setup and robot navigation before running full calibration
+    SmartDashboard.putData("Vision/Calibration/Validate Points",
+        new CalibrationPointsValidationCommand(drivetrain));
+    
+    // SmartDashboard button to advance to next point during validation
+    SmartDashboard.putBoolean("CalibrationValidation/NextPoint", false);
 
     // Display SmartDashboard info on all configured cameras (dynamically)
     SmartDashboard.putData("Vision/Show All Cameras",

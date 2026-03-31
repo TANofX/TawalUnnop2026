@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionCalibrationEngine;
 
@@ -84,6 +85,19 @@ public class MultiPointVisionCalibrationCommand extends Command {
     @Override
     public void initialize() {
         currentPointIndex = 0;
+        
+        // CRITICAL: Disable vision updates during calibration
+        // We want pure odometry-based navigation for accurate testing
+        RobotContainer.disableVisionUpdates = true;
+        SmartDashboard.putBoolean("VisionCal/VisionUpdatesDisabled", true);
+        
+        // CRITICAL: Reset odometry to first calibration point (known starting location)
+        // This ensures clean odometry for navigation between points
+        Pose2d firstPoint = calibrationPoints.get(0);
+        drivetrain.resetPose(firstPoint);
+        SmartDashboard.putString("VisionCal/OdometryReset", 
+            String.format("Odometry reset to Point 1: (%.2f, %.2f)", firstPoint.getX(), firstPoint.getY()));
+        
         // START AT FIRST POINT - Robot is already manually placed there
         // Skip navigation directly to waiting state
         sequenceState = State.AT_POINT_WAITING;
@@ -258,6 +272,10 @@ public class MultiPointVisionCalibrationCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         drivetrain.setControl(new SwerveRequest.Idle());
+        
+        // Re-enable vision updates now that calibration is complete
+        RobotContainer.disableVisionUpdates = false;
+        SmartDashboard.putBoolean("VisionCal/VisionUpdatesDisabled", false);
         
         if (interrupted) {
             SmartDashboard.putString("VisionCal/SequenceStatus", "Multi-point calibration interrupted!");

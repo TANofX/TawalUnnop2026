@@ -4,7 +4,9 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionCalibrationEngine;
 import frc.robot.subsystems.VisionCalibrationEngine.CalibrationState;
@@ -47,6 +49,15 @@ public class VisionCalibrationCommand extends Command {
     
     @Override
     public void initialize() {
+        // Disable vision updates during calibration - we want pure odometry-based testing
+        RobotContainer.disableVisionUpdates = true;
+        SmartDashboard.putBoolean("VisionCal/VisionUpdatesDisabled", true);
+        
+        // Reset odometry to known initial position
+        drivetrain.resetPose(knownInitialPose);
+        SmartDashboard.putString("VisionCal/OdometryReset", 
+            String.format("Odometry reset to: (%.2f, %.2f)", knownInitialPose.getX(), knownInitialPose.getY()));
+        
         System.out.println("Starting vision calibration from pose: " + knownInitialPose);
         startTime = Timer.getFPGATimestamp();
         calibrationEngine.startCalibration(knownInitialPose);
@@ -93,6 +104,10 @@ public class VisionCalibrationCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         drivetrain.setControl(new SwerveRequest.Idle());
+        
+        // Re-enable vision updates now that calibration is complete
+        RobotContainer.disableVisionUpdates = false;
+        SmartDashboard.putBoolean("VisionCal/VisionUpdatesDisabled", false);
         
         if (!interrupted && calibrationEngine.getCalibrationState() == CalibrationState.COLLECTING_DATA) {
             calibrationEngine.stopCalibration();
