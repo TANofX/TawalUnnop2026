@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -35,7 +36,6 @@ import frc.lib.swerve.TunerConstants;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
-import frc.robot.commands.AutoShooter;
 import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
@@ -47,7 +47,6 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
-import frc.robot.util.RobotPoseLookup;
 
 public class RobotContainer {
   // Define set points for shooting if autos fail
@@ -126,13 +125,12 @@ public class RobotContainer {
   // }
 
   public RobotContainer() {
-    NamedCommands.registerCommand("Shoot", AutoShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
-    NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Mode", autoChooser);
     
   // Register Named PathPlanner Commands
-  // NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> rightClimbAngle, () -> rightClimbRPM));
-  // NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
+  NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
 
     configureButtonBindings();
@@ -147,20 +145,18 @@ public class RobotContainer {
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
 
     //r to avoid Java pauses
-    // CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Mode", autoChooser);
+    CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
   }
 
   private void configureButtonBindings() {
+    coDriver.START();
     SmartDashboard.putData(new ZeroTurret(turret));
     SmartDashboard.putData(new CalibrateTurret(turret));
     // SmartDashboard.putData("Autos", autoChooser());
 
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
-    // turret.setDefaultCommand(
-    //     Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
-    
+    turret.setDefaultCommand(
+        Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
     // Note that X is defined as forward according to WPILib convention,
     // and Y is defined as to the left according to WPILib convention.
     drivetrain.setDefaultCommand(
@@ -200,11 +196,6 @@ public class RobotContainer {
         new FixedShooter(shooter, turret, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
-  
-  private Command AutoShooterCommand(java.util.function.Supplier<Rotation2d> turretAngle, DoubleSupplier targetRPM) {
-    return Commands.sequence(new CalibrateTurret(turret),
-        new AutoShooter(shooter, turret, targetRPM, turretAngle).withTimeout(6).finallyDo(() -> {shooter.stopShooterMotors(); indexer.stopIndexer();}));
-  }
 private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
