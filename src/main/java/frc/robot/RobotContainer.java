@@ -201,7 +201,7 @@ public class RobotContainer {
   
   private Command AutoShooterCommand(java.util.function.Supplier<Rotation2d> turretAngle, DoubleSupplier targetRPM) {
     return Commands.sequence(new CalibrateTurret(turret),
-        new AutoShooter(shooter, turret, targetRPM, turretAngle).withTimeout(10).finallyDo(() -> {shooter.stopShooterMotors(); indexer.stopIndexer();}));
+        new AutoShooter(shooter, turret, targetRPM, turretAngle).withTimeout(6).finallyDo(() -> {shooter.stopShooterMotors(); indexer.stopIndexer();}));
   }
 private Command shootTestFuelCommand() {
     return Commands.run(
