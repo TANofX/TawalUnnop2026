@@ -11,14 +11,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 
-public class FixedShooter extends Command {
+public class AutoShooter extends Command {
   
   private Shooter theShooter;
   private Turret theTurret;
   private DoubleSupplier theTargetRPM;
   private java.util.function.Supplier<Rotation2d> theTurretAngle;
 
-  public FixedShooter(Shooter shooter, Turret turret, DoubleSupplier targetRPM, java.util.function.Supplier<Rotation2d> turretAngle) {
+  public AutoShooter(Shooter shooter, Turret turret, DoubleSupplier targetRPM, java.util.function.Supplier<Rotation2d> turretAngle) {
     theTurret = turret;
     theShooter = shooter;
     theTargetRPM = targetRPM;
@@ -46,6 +46,6 @@ public class FixedShooter extends Command {
   // Returns true when the command should end.
  @Override
 public boolean isFinished() {
-    return theTurret.isAtTarget();  
+    return false;  
 }
 }
