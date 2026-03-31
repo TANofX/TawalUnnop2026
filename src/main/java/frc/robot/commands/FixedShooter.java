@@ -4,6 +4,8 @@
 
 package frc.robot.commands;
 
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
@@ -13,10 +15,10 @@ public class FixedShooter extends Command {
   
   private Shooter theShooter;
   private Turret theTurret;
-  private double theTargetRPM;
-  private Rotation2d theTurretAngle;
+  private DoubleSupplier theTargetRPM;
+  private java.util.function.Supplier<Rotation2d> theTurretAngle;
 
-  public FixedShooter(Shooter shooter, Turret turret, double targetRPM, Rotation2d turretAngle) {
+  public FixedShooter(Shooter shooter, Turret turret, DoubleSupplier targetRPM, java.util.function.Supplier<Rotation2d> turretAngle) {
     theTurret = turret;
     theShooter = shooter;
     theTargetRPM = targetRPM;
@@ -27,8 +29,8 @@ public class FixedShooter extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    theShooter.setShooterRPM(theTargetRPM, theTargetRPM);
-    theTurret.pointToTarget(theTurretAngle);
+    theShooter.setShooterRPM(theTargetRPM.getAsDouble(), theTargetRPM.getAsDouble());
+    theTurret.pointToTarget(theTurretAngle.get());
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -42,8 +44,8 @@ public class FixedShooter extends Command {
   }
 
   // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
+ @Override
+public boolean isFinished() {
+    return theTurret.isAtTarget();  
+}
 }

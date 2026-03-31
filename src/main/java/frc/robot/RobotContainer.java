@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -59,7 +61,7 @@ public class RobotContainer {
   public static final XboxControllerWrapper driver = new XboxControllerWrapper(0, 0.1);
   public static final XboxControllerWrapper coDriver = new XboxControllerWrapper(1, 0.1);
 
-  private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
+  private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                       // speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max
                                                                                     // angular velocity
@@ -125,7 +127,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
     
   // Register Named PathPlanner Commands
-  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(fireControl.getCurrentTarget(), fireControl.getShooterRpm()));
+  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(()->fireControl.getCurrentTarget(),()-> fireControl.getShooterRpm()));
   NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
 
@@ -136,11 +138,11 @@ public class RobotContainer {
     }, drivetrain));
 
     // vision.addCamera("heart", Constants.Vision.robotToHeart);
-    vision.addCamera("club", Constants.Vision.robotToClub);
+    // vision.addCamera("club", Constants.Vision.robotToClub);
     // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
 
-    // Warmup PathPlanner to avoid Java pauses
+    //r to avoid Java pauses
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
   }
 
@@ -168,7 +170,7 @@ public class RobotContainer {
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    driver.DUp().whileTrue(CreateFixedShooterCommand(Rotation2d.fromDegrees(0), 900));
+    // driver.DUp().whileTrue(CreateFixedShooterCommand(Rotation2d.fromDegrees(0), 900));
     // driver.LB().whileTrue(intake.extakeFuel());
     driver.RT().whileTrue(shootTestFuelCommand());
     driver.Y().onTrue(intake.putUpIntake());
@@ -180,26 +182,26 @@ public class RobotContainer {
     coDriver.RT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
     // Set positions to shoot from if autos fail
-    coDriver.A().whileTrue(CreateFixedShooterCommand(rightClimbAngle, rightClimbRPM));
-    coDriver.B().whileTrue(CreateFixedShooterCommand(rightTrenchAngle, rightTrenchRPM));
-    coDriver.X().whileTrue(CreateFixedShooterCommand(leftTrenchAngle, leftTrenchRPM));
-    coDriver.Y().whileTrue(CreateFixedShooterCommand(leftClimbAngle, leftClimbRPM));
+    coDriver.A().whileTrue(CreateFixedShooterCommand(() -> rightClimbAngle, () -> rightClimbRPM));
+    coDriver.B().whileTrue(CreateFixedShooterCommand(() -> rightTrenchAngle, () -> rightTrenchRPM));
+    coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
+    coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
 
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 
-  private Command CreateFixedShooterCommand(Rotation2d angle, double rpm) {
+  private Command CreateFixedShooterCommand(java.util.function.Supplier<Rotation2d> turretAngle, DoubleSupplier targetRPM) {
     return Commands.sequence(new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
+        new FixedShooter(shooter, turret, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
-  public Command shootTestFuelCommand() {
+private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
-          double targetRPM = fireControl.getShooterRpm();
+          double targetRPM = 3000; // test value
           shooter.setShooterRPM(targetRPM, targetRPM);
         }, shooter).finallyDo(() -> shooter.stopShooterMotors());
-  }
+}
 
   public Command intakePushFuel() {
     return intake.run(() -> {
@@ -225,7 +227,7 @@ public class RobotContainer {
 
     return Commands.sequence(new BumpPosition("left", drivetrain),
         new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
+        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
   public Command rightBumpAutoCommand() {
@@ -234,7 +236,7 @@ public class RobotContainer {
 
     return Commands.sequence(new BumpPosition("right", drivetrain),
         new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
+        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
   public Command rightTrenchAutoCommand() {
@@ -242,7 +244,7 @@ public class RobotContainer {
     Rotation2d angle = rightTrenchAngle;
 
     return Commands.sequence(new TrenchPosition("right", drivetrain), new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
+        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
   public Command leftTrenchAutoCommand() {
@@ -250,7 +252,7 @@ public class RobotContainer {
     Rotation2d angle = leftTrenchAngle;
 
     return Commands.sequence(new TrenchPosition("left", drivetrain), new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, rpm, angle).finallyDo(() -> shooter.stopShooterMotors()));
+        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
   public Command getAutonomousCommand() {

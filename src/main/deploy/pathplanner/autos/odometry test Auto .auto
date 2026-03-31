@@ -9,6 +9,24 @@
           "data": {
             "pathName": "odometry test path"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Copy of odometry test path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Copy of Copy of odometry test path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Copy of Copy of Copy of odometry test path"
+          }
         }
       ]
     }
