@@ -357,11 +357,12 @@ public class RobotContainer {
     // Calibration points validation command
     // Drives robot through each calibration point in calibration_points.csv
     // Allows operator to verify field setup and robot navigation before running full calibration
+    CalibrationPointsValidationCommand calValCommand = new CalibrationPointsValidationCommand(drivetrain);
     SmartDashboard.putData("Vision/Calibration/Validate Points",
-        new CalibrationPointsValidationCommand(drivetrain));
+        calValCommand);
     
     // SmartDashboard button to advance to next point during validation
-    SmartDashboard.putBoolean("CalibrationValidation/NextPoint", false);
+    //SmartDashboard.putData("CalibrationValidation/NextPoint", Commands.runOnce(() -> calValCommand., null));
 
     // Display SmartDashboard info on all configured cameras (dynamically)
     SmartDashboard.putData("Vision/Show All Cameras",

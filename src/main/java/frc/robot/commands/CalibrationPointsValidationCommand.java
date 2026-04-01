@@ -11,6 +11,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -88,7 +89,7 @@ public class CalibrationPointsValidationCommand extends Command {
     }
     
     @Override
-    public void initialize() {
+    public void initialize() { 
         SmartDashboard.putString("CalibrationValidation/Status", "Loading calibration points...");
         
         // Store starting pose so we can return to it after validation
@@ -99,6 +100,11 @@ public class CalibrationPointsValidationCommand extends Command {
         
         // Load calibration points from CSV
         loadCalibrationPoints();
+        CalibrationPoint point = calibrationPoints.get(0);
+        Pose2d firstPoint = new Pose2d(new Translation2d(point.x, point.y), Rotation2d.fromDegrees(point.rotationDegrees));
+        drivetrain.resetPose(firstPoint);
+        SmartDashboard.putString("VisionCal/OdometryReset", 
+            String.format("Odometry reset to Point 1: (%.2f, %.2f)", firstPoint.getX(), firstPoint.getY()));
         
         if (calibrationPoints.isEmpty()) {
             SmartDashboard.putString("CalibrationValidation/Status", "ERROR: No calibration points loaded!");
@@ -106,7 +112,7 @@ public class CalibrationPointsValidationCommand extends Command {
         }
         
         // Start at the first point
-        currentPointIndex = 0;
+        currentPointIndex = 1   ;
         returningToStart = false;
         navigateToNextPoint();
         
@@ -241,7 +247,6 @@ public class CalibrationPointsValidationCommand extends Command {
         if (currentPointIndex >= calibrationPoints.size()) {
             return;
         }
-        
         currentPoint = calibrationPoints.get(currentPointIndex);
         targetPose = currentPoint.toPose2d();
         navigationComplete = false;
@@ -307,7 +312,7 @@ public class CalibrationPointsValidationCommand extends Command {
         
         // Proportional drive to target
         // Compute drive velocity (robot-relative)
-        double driveVelocity = Math.min(MAX_DRIVE_VELOCITY, distanceError * 0.5);
+        double driveVelocity = Math.min(MAX_DRIVE_VELOCITY, distanceError * 1.67); // 0.5
         final double angularVelocity = Math.max(-MAX_ANGULAR_VELOCITY, 
             Math.min(MAX_ANGULAR_VELOCITY, rotationError * 0.02)); // Proportional rotation control
         
