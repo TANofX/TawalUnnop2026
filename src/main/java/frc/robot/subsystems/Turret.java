@@ -24,8 +24,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 
 public class Turret extends SubsystemBase {
-    private FireControl controllerOfFire;
-    private Transform3d robotToTurret;
     private double numRotations;
     private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
 
@@ -40,7 +38,6 @@ public class Turret extends SubsystemBase {
     public Turret(String turretName, final int TURRET_MOTOR_ID, final int TURRET_CALI_SWITCH_ID, Transform3d roboToTur) {
         super(turretName);
         calibrated = false;
-        robotToTurret = roboToTur;
         turretMotor = new SparkMax(TURRET_MOTOR_ID, MotorType.kBrushless);
         // calibrationSwitch = new DigitalInput(TURRET_CALI_SWITCH_ID);
         switchList.add(new TurretSwitch(TURRET_CALI_SWITCH_ID, getName() + "thing 1"));
@@ -52,7 +49,7 @@ public class Turret extends SubsystemBase {
                 .inverted(true);
 
         turretMotorConfig.closedLoop.pid(Constants.Turret.TURRET_P, Constants.Turret.TURRET_I,
-                Constants.Turret.TURRET_D); // TODO find neede PIDs
+                Constants.Turret.TURRET_D);
         turretMotorConfig.closedLoop.feedForward.sva(Constants.Turret.TURRET_kS, Constants.Turret.TURRET_kV,
                 Constants.Turret.TURRET_kA);
         
@@ -72,7 +69,7 @@ public class Turret extends SubsystemBase {
     }
 
     public void turnClockwise() {
-        turretMotor.set(-(Constants.CALISPEED));
+        turretMotor.set(-(Constants.Turret.CALISPEED));
     }
 
     public void calibrateClock() {
@@ -90,7 +87,7 @@ public class Turret extends SubsystemBase {
     }
 
     public void turnCounterClockwise() {
-        turretMotor.set((Constants.CALISPEED));
+        turretMotor.set((Constants.Turret.CALISPEED));
     }
 
     public void stopTurret() {
@@ -113,12 +110,10 @@ public class Turret extends SubsystemBase {
         return numRotations;
     }
 
-    public Rotation2d getAngle() {
+    private Rotation2d getAngle() {
         Rotation2d currentAngle = Rotation2d.fromRotations(turretEncoder.getPosition() / Constants.Turret.TURRET_GEAR_RATIO_IO);
         Rotation2d finalAngle = Rotation2d.fromRadians(MathUtil.angleModulus(currentAngle.getRadians()));
-        return finalAngle;
-        
-        
+        return finalAngle;   
     }
 
     public void pointToTarget(Rotation2d targetAngle) {
@@ -129,6 +124,13 @@ public class Turret extends SubsystemBase {
         turretMotorController.setSetpoint(numRotations, ControlType.kPosition);
     }
 
+    public Rotation2d getTargetAngle() {
+        return targetAngle;
+    }
+
+    public boolean isAtTarget() {
+        return Math.abs(getAngle().minus(getTargetAngle()).getDegrees()) < 2;
+    }
     @Override
     public void periodic() {
         SmartDashboard.putNumber(getName() + "/Turret Angle",getAngle().getDegrees());
@@ -137,7 +139,7 @@ public class Turret extends SubsystemBase {
         SmartDashboard.putNumber(getName() + "/Target Encoder Position", getNumRotations());
         SmartDashboard.putBoolean(getName() + "/Switch", isOnLimitSwitch());
         SmartDashboard.putBoolean(getName() + "/isCalibrated", calibrated);
-        // pointToTarget(controllerOfFire.getCurrentTarget()); TODO
+        SmartDashboard.putBoolean(getName() + "/isAtTarget", isAtTarget());
     }
 
     public class TurretSwitch {

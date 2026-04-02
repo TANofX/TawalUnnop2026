@@ -7,15 +7,18 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Turret;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ShootWithIndexer extends Command {
   private Shooter shooter;
   private Indexer indexer;
+  private Turret turret;
 
-  public ShootWithIndexer(Shooter shooter, Indexer indexer) {
+  public ShootWithIndexer(Shooter shooter, Indexer indexer, Turret turret) {
     this.shooter = shooter;
     this.indexer = indexer;
+    this.turret = turret;
     addRequirements(this.indexer);
   }
 
@@ -28,7 +31,7 @@ public class ShootWithIndexer extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (shooter.runIndexer()) {
+    if (shooter.runIndexer() && turret.isAtTarget()) {
       indexer.indexerForward();
     } else {
       indexer.stopIndexer();

@@ -156,6 +156,16 @@ public class Intake extends SubsystemBase {
   public void intakeForward() {
     intakeMotor.set(intakeSpeed);
   }
+  public void raiseIntakeToJostle() {
+    liftMotor.set(.1);
+  }
+  public void intakeToJostle() {
+    intakeMotor.set(0.2);
+    
+  }
+  public void lowerIntakeManually() {
+    liftMotor.set(-.1);
+  }
 
   public void intakeBackward() {
     intakeMotor.set(intakeSpeed * -1);

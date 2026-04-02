@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -30,7 +31,6 @@ public class FireControl extends SubsystemBase {
     private Pose2d target;
     private Supplier<ChassisSpeeds> speedSupplier;
     InterpolatingDoubleTreeMap rpmFromDistance;
-    private ChassisSpeeds currentChassisSpeeds;
 
     public FireControl(Supplier<Pose2d> robSupplier, Supplier<Alliance> allSupplier,
             Supplier<ChassisSpeeds> vSupplier) {
@@ -115,6 +115,36 @@ public class FireControl extends SubsystemBase {
         return d;
     }
 
+    /**
+     * @return The chassis speed of the robot
+     */
+    private ChassisSpeeds getChassisSpeed() {
+        return speedSupplier.get();
+    }
+
+    /**
+     * @return The time of how long fuel is in the air
+     */
+    private double getAirTime(Pose2d robotPos) {
+        double shootervx = ((getShooterRpm() * 2 * Math.PI) / 60.0) * Math.cos(Constants.HOOD_ANGLE);
+        double time = getClosestTarget(robotPos).getMeasureX().div(shootervx).magnitude();
+        return time;
+    }
+    /**
+     * @return The offset position of robot for target calculations
+     */
+    private Pose2d getFuturePos() {
+        Pose2d robotPos = robotSupplier.get();
+        ChassisSpeeds chassisSpeed = speedSupplier.get();
+        double time = getAirTime(robotPos);
+        double futureX = chassisSpeed.vxMetersPerSecond * time;
+        double futureY = chassisSpeed.vyMetersPerSecond * time;
+        double futureAngleInRads = chassisSpeed.omegaRadiansPerSecond * time;
+        
+        Twist2d futurePos = new Twist2d(futureX, futureY, futureAngleInRads);
+        
+        return robotPos.exp(futurePos);
+    }   
     @Override
     // Checks every cycle for the correct target loctation, distance, and robot sped
     public void periodic() {
@@ -122,7 +152,6 @@ public class FireControl extends SubsystemBase {
         target = getClosestTarget(turretPose2d);
         currentTarget = getTargetRotation(turretPose2d, target);
         distanceFromTarget = getDistance(target, turretPose2d);
-        currentChassisSpeeds = speedSupplier.get();
 
         SmartDashboard.putNumber("Fire Control/Target Angle", currentTarget.getDegrees());
         SmartDashboard.putNumber("Fire Control/Distance From Target", distanceFromTarget);
@@ -161,18 +190,12 @@ public class FireControl extends SubsystemBase {
             e.printStackTrace();
         }
     }
-
+  
+    /**
+     * @return The RPM needed for the shooter to hit the hub based off distance of target
+     */
     public double getShooterRpm() {
         return rpmFromDistance.get(getDistanceFromTarget());
-    }
-
-    /**
-     * @return The offset needed to aim while moving
-     */
-    private double getOffset() {
-        double offset;
-        offset = 0.0;
-        return offset;
     }
 
     /**
