@@ -40,6 +40,7 @@ import frc.robot.commands.NoTurretCommand;
 import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
+import frc.robot.commands.ShooterSpeedAdjustment;
 import frc.robot.commands.ZeroTurret;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
@@ -76,6 +77,7 @@ public class RobotContainer {
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
   private final CommandXboxController joystick = new CommandXboxController(0);
+  private final CommandXboxController shooterJoystick = new CommandXboxController(2);
 
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public static final PowerDistribution powerDistribution = new PowerDistribution();
@@ -146,6 +148,7 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
+    ShooterSpeedAdjustment shooterAdjust = new ShooterSpeedAdjustment(shooter);
     coDriver.START();
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
@@ -181,6 +184,18 @@ public class RobotContainer {
     coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
     coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
 
+    drivetrain.applyRequest(() -> drive.withRotationalRate(-shooterJoystick.getRightX() * RotationsPerSecond.of(0.25).in(RadiansPerSecond)));
+    
+    logController.DRight().onTrue(
+        Commands.runOnce(() -> shooterAdjust.adjustRPM(
+            SmartDashboard.getNumber(shooter.getName() + "/RPM Increment", 100)
+        )));
+
+    logController.DLeft().onTrue(
+        Commands.runOnce(() -> shooterAdjust.adjustRPM(
+            -SmartDashboard.getNumber(shooter.getName() + "/RPM Increment", 100)
+        )));
+        
     logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
     drivetrain.registerTelemetry(logger::telemeterize);
   }
