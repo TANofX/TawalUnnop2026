@@ -36,6 +36,7 @@ import frc.lib.swerve.TunerConstants;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
+import frc.robot.commands.NoTurretCommand;
 import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
@@ -58,14 +59,13 @@ public class RobotContainer {
   public static final Rotation2d leftClimbAngle = Constants.SetPoints.climbLeftTurretAngle;
   public static final Rotation2d rightTrenchAngle = Constants.SetPoints.trenchRightTurretAngle;
   public static final Rotation2d leftTrenchAngle = Constants.SetPoints.trenchLeftTurretAngle;
+
   // Controllers
   public static final XboxControllerWrapper driver = new XboxControllerWrapper(0, 0.1);
   public static final XboxControllerWrapper coDriver = new XboxControllerWrapper(1, 0.1);
 
-  private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
-                                                                                      // speed
-  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max
-                                                                                    // angular velocity
+  private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -90,7 +90,7 @@ public class RobotContainer {
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
       Constants.Intake.INTAKE_MOTOR_ID);
 
-  public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID);
+  public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID, Constants.Indexer.AGITATOR_MOTOR_ID);
 
   public static final Turret turret = new Turret("Turret", Constants.Turret.TURRET_MOTOR_ID,
       Constants.Turret.Turret_HALL_EFFECT_ID, null); // TODO obtain transform from robot to turret
@@ -112,9 +112,6 @@ public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
 
-  // Vision clients
-  // public static final JetsonClient jetson = new JetsonClient();
-
   // private SendableChooser<Command> autoChooser() {
   // chooser = new SendableChooser<>();
   // chooser.addOption("rightTrench", rightTrenchAutoCommand());
@@ -125,15 +122,15 @@ public class RobotContainer {
   // }
 
   public RobotContainer() {
+    configureButtonBindings();
+
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
     
   // Register Named PathPlanner Commands
-  NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
-  NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+    NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
+    NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
 
-
-    configureButtonBindings();
 
     SmartDashboard.putData("Reset Position", Commands.runOnce(() -> {
       drivetrain.resetPose(Pose2d.kZero);
@@ -144,26 +141,23 @@ public class RobotContainer {
     // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
 
-    //r to avoid Java pauses
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
   }
 
   private void configureButtonBindings() {
     coDriver.START();
-    SmartDashboard.putData(new ZeroTurret(turret));
-    SmartDashboard.putData(new CalibrateTurret(turret));
-    // SmartDashboard.putData("Autos", autoChooser());
-
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
-        Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret, fireControl)));
-    // Note that X is defined as forward according to WPILib convention,
-    // and Y is defined as to the left according to WPILib convention.
+        Commands.sequence(new CalibrateTurret(turret), new NoTurretCommand(turret, Constants.Turret.NO_TURRET_ANGLE)));
     drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-            .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-            .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
+            .withVelocityY(-joystick.getLeftX() * MaxSpeed)
+            .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
         ));
+    
+    SmartDashboard.putData(new ZeroTurret(turret));
+    SmartDashboard.putData(new CalibrateTurret(turret));
+
     // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
     final var idle = new SwerveRequest.Idle();
@@ -171,8 +165,6 @@ public class RobotContainer {
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    // driver.DUp().whileTrue(CreateFixedShooterCommand(Rotation2d.fromDegrees(0), 900));
-    // driver.LB().whileTrue(intake.extakeFuel());
     driver.RT().whileTrue(shootTestFuelCommand());
     driver.Y().onTrue(intake.putUpIntake());
 

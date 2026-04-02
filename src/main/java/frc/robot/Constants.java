@@ -152,6 +152,8 @@ public final class Constants {
     public static final int CURRENT = 50;
     public static final double TURRET_GEAR_RATIO_IO = 20 * 200 / 28;
 
+    public static final Rotation2d NO_TURRET_ANGLE = Rotation2d.fromDegrees(180); //TODO
+
     public static final double TURRET_kV = 0.0010522;
     public static final double TURRET_kA = 0.00010721;
     public static final double TURRET_kS = 0.017925;
@@ -238,6 +240,7 @@ public final class Constants {
 
   public static final class Indexer {
     public static final int INDEXER_MOTOR_ID = 40;
+    public static final int AGITATOR_MOTOR_ID = 41;
     public static final int CURRENT_LIMIT = 50;
     public static final double VOLTAGE_LIMIT = 10;
     public static final double SPEED = 0.75;
