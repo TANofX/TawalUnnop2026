@@ -187,15 +187,12 @@ public class RobotContainer {
     drivetrain.applyRequest(() -> drive.withRotationalRate(-shooterJoystick.getRightX() * RotationsPerSecond.of(0.25).in(RadiansPerSecond)));
     
     logController.DRight().onTrue(
-        Commands.runOnce(() -> shooterAdjust.adjustRPM(
-            SmartDashboard.getNumber(shooter.getName() + "/RPM Increment", 100)
-        )));
+    Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
+    );
 
     logController.DLeft().onTrue(
-        Commands.runOnce(() -> shooterAdjust.adjustRPM(
-            -SmartDashboard.getNumber(shooter.getName() + "/RPM Increment", 100)
-        )));
-        
+        Commands.runOnce(() -> shooterAdjust.adjustRPM(-shooterAdjust.getIncrement()))
+    );
     logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
     drivetrain.registerTelemetry(logger::telemeterize);
   }

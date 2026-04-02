@@ -29,16 +29,15 @@ public class ShooterSpeedAdjustment extends Command {
     SmartDashboard.putNumber(baseKey + "/RPM Increment", 100);
   }
 
-  private double getIncrement() {
+  public double getIncrement() {
     return SmartDashboard.getNumber(baseKey + "/RPM Increment", 100);
   }
 
   public void adjustRPM(double delta) {
     targetRPM += delta;
 
-    // Optional safety clamp
+    // Optional safety clamp 
     if (targetRPM < 0) targetRPM = 0;
-
     shooter.setShooterRPM(targetRPM, targetRPM);
     SmartDashboard.putNumber(baseKey + "/Target", targetRPM);
   }
