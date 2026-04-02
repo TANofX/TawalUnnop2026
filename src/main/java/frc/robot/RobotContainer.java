@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.input.controllers.XboxControllerWrapper;
 import frc.lib.swerve.TunerConstants;
+import frc.lib.util.RobotLogger;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.FixedShooter;
 import frc.robot.commands.NoTurretCommand;
@@ -62,6 +63,7 @@ public class RobotContainer {
   // Controllers
   public static final XboxControllerWrapper driver = new XboxControllerWrapper(0, 0.1);
   public static final XboxControllerWrapper coDriver = new XboxControllerWrapper(1, 0.1);
+  public static final XboxControllerWrapper logController = new XboxControllerWrapper(2,0.1);
 
   private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -110,7 +112,7 @@ public class RobotContainer {
       () -> new ChassisSpeeds());
 
   private final SendableChooser<Command> autoChooser;
-
+  public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl, drivetrain);
   // private SendableChooser<Command> autoChooser() {
   // chooser = new SendableChooser<>();
   // chooser.addOption("rightTrench", rightTrenchAutoCommand());
@@ -179,6 +181,7 @@ public class RobotContainer {
     coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
     coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
 
+    logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 

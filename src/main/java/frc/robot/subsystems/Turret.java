@@ -110,7 +110,7 @@ public class Turret extends SubsystemBase {
         return numRotations;
     }
 
-    private Rotation2d getAngle() {
+    public Rotation2d getAngle() {
         Rotation2d currentAngle = Rotation2d.fromRotations(turretEncoder.getPosition() / Constants.Turret.TURRET_GEAR_RATIO_IO);
         Rotation2d finalAngle = Rotation2d.fromRadians(MathUtil.angleModulus(currentAngle.getRadians()));
         return finalAngle;   
