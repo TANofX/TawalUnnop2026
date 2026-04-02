@@ -34,7 +34,6 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.input.controllers.XboxControllerWrapper;
 import frc.lib.swerve.TunerConstants;
 import frc.robot.commands.CalibrateTurret;
-import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
 import frc.robot.commands.NoTurretCommand;
 import frc.robot.commands.BumpPosition;

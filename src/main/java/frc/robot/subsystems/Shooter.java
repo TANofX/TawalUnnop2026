@@ -9,15 +9,13 @@ import java.util.List;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode; // Import the new global ResetMode
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.ResetMode;   // Import the new global ResetMode
-import com.revrobotics.PersistMode;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -95,7 +93,7 @@ public class Shooter extends SubsystemBase {
     shooterBittyBottomMotor.configure(shooterBittyBottomConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     
     try {
-      shooterBittyBottomConfig.follow(shooterLeftBottomMotor); // TODO
+      shooterBittyBottomConfig.follow(shooterLeftBottomMotor);
       hardwareFollowConfigured = true;
     } catch (Exception ex) {
       hardwareFollowConfigured = false;
@@ -146,7 +144,7 @@ public class Shooter extends SubsystemBase {
         .i(Constants.Shooter.TOP_SHOOTER_I)
         .d(Constants.Shooter.TOP_SHOOTER_D);
 
-    shooterBottomConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE); //TODO do we want ramp rate?
+    shooterBottomConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE);
     shooterTopConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE);
 
     shooterLeftTopMotor.configure(shooterTopConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

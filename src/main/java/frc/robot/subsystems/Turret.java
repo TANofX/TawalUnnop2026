@@ -24,8 +24,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 
 public class Turret extends SubsystemBase {
-    private FireControl controllerOfFire;
-    private Transform3d robotToTurret;
     private double numRotations;
     private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
 
@@ -40,7 +38,6 @@ public class Turret extends SubsystemBase {
     public Turret(String turretName, final int TURRET_MOTOR_ID, final int TURRET_CALI_SWITCH_ID, Transform3d roboToTur) {
         super(turretName);
         calibrated = false;
-        robotToTurret = roboToTur;
         turretMotor = new SparkMax(TURRET_MOTOR_ID, MotorType.kBrushless);
         // calibrationSwitch = new DigitalInput(TURRET_CALI_SWITCH_ID);
         switchList.add(new TurretSwitch(TURRET_CALI_SWITCH_ID, getName() + "thing 1"));
@@ -52,7 +49,7 @@ public class Turret extends SubsystemBase {
                 .inverted(true);
 
         turretMotorConfig.closedLoop.pid(Constants.Turret.TURRET_P, Constants.Turret.TURRET_I,
-                Constants.Turret.TURRET_D); // TODO find neede PIDs
+                Constants.Turret.TURRET_D);
         turretMotorConfig.closedLoop.feedForward.sva(Constants.Turret.TURRET_kS, Constants.Turret.TURRET_kV,
                 Constants.Turret.TURRET_kA);
         
@@ -143,7 +140,6 @@ public class Turret extends SubsystemBase {
         SmartDashboard.putBoolean(getName() + "/Switch", isOnLimitSwitch());
         SmartDashboard.putBoolean(getName() + "/isCalibrated", calibrated);
         SmartDashboard.putBoolean(getName() + "/isAtTarget", isAtTarget());
-        // pointToTarget(controllerOfFire.getCurrentTarget()); TODO
     }
 
     public class TurretSwitch {

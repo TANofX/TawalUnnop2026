@@ -11,7 +11,6 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -32,7 +31,6 @@ public class FireControl extends SubsystemBase {
     private Pose2d target;
     private Supplier<ChassisSpeeds> speedSupplier;
     InterpolatingDoubleTreeMap rpmFromDistance;
-    private ChassisSpeeds currentChassisSpeeds;
 
     public FireControl(Supplier<Pose2d> robSupplier, Supplier<Alliance> allSupplier,
             Supplier<ChassisSpeeds> vSupplier) {
@@ -154,7 +152,6 @@ public class FireControl extends SubsystemBase {
         target = getClosestTarget(turretPose2d);
         currentTarget = getTargetRotation(turretPose2d, target);
         distanceFromTarget = getDistance(target, turretPose2d);
-        currentChassisSpeeds = speedSupplier.get();
 
         SmartDashboard.putNumber("Fire Control/Target Angle", currentTarget.getDegrees());
         SmartDashboard.putNumber("Fire Control/Distance From Target", distanceFromTarget);
