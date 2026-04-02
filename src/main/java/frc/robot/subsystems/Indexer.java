@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.signals.ControlModeValue;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -29,6 +30,9 @@ public class Indexer extends SubsystemBase {
   private final SparkFlex indexerMotor;
   private final SparkFlexConfig indexerMotorConfig;
   private final SparkClosedLoopController indexerMotorController;
+  private final SparkFlex agitatorMotor;
+  private final SparkFlexConfig agitatorMotorConfig;
+  private final SparkClosedLoopController agitatorMotorController;
 
   private final SparkFlexSim flexSim;
 
@@ -39,7 +43,7 @@ public class Indexer extends SubsystemBase {
           Constants.Indexer.INDEXER_GEAR_RATIO),
       DCMotor.getNeoVortex(1));
 
-  public Indexer(int indexerMotorID) {
+  public Indexer(int indexerMotorID, int agitatorMotorID) {
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
     indexerMotorController = indexerMotor.getClosedLoopController();
     indexerMotorConfig = new SparkFlexConfig();
@@ -54,6 +58,20 @@ public class Indexer extends SubsystemBase {
         .inverted(true);
     indexerMotor.configure(indexerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     flexSim = new SparkFlexSim(indexerMotor, DCMotor.getNeoVortex(1));
+
+    agitatorMotor = new SparkFlex(agitatorMotorID, MotorType.kBrushless);
+    agitatorMotorController = agitatorMotor.getClosedLoopController();
+    agitatorMotorConfig = new SparkFlexConfig();
+    agitatorMotorConfig.closedLoop.feedForward.sva(Constants.Indexer.INDEXER_kS, Constants.Indexer.INDEXER_kV,
+        Constants.Indexer.INDEXER_kA);
+    agitatorMotorConfig.closedLoop.pid(Constants.Indexer.INDEXER_P, Constants.Indexer.INDEXER_I,
+        Constants.Indexer.INDEXER_D);
+    agitatorMotorConfig
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(Constants.Indexer.CURRENT_LIMIT)
+        .voltageCompensation(Constants.Indexer.VOLTAGE_LIMIT)
+        .inverted(true);
+    agitatorMotor.configure(agitatorMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   @Override
@@ -74,21 +92,27 @@ public class Indexer extends SubsystemBase {
   public void indexerForward() {
     // indexerMotor.set(Constants.Indexer.SPEED);
     indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
     // indexerMotor.set(Constants.Indexer.SPEED * -1);
     indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(-4000, ControlType.kVelocity);
   }
 
   public void stopIndexer() {
     indexerMotor.stopMotor();
+    agitatorMotor.stopMotor();
   }
 
-  public double getMotorRPM() {
+  public double getIndexerMotorRPM() {
     return indexerMotor.getEncoder().getVelocity();
   }
 
+  public double getAgitatorMotorRPM() {
+    return agitatorMotor.getEncoder().getVelocity();
+  }
   public Command shootFuel() {
     return Commands.startEnd(() -> indexerForward(), () -> stopIndexer(), this);
   }
@@ -100,7 +124,8 @@ public class Indexer extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Indexer/output", indexerMotor.getAppliedOutput());
-    SmartDashboard.putNumber("Indexer/Current Speed", getMotorRPM());
+    SmartDashboard.putNumber("Indexer/Indexer Current Speed", getIndexerMotorRPM());
+    SmartDashboard.putNumber("Indexer/Indexer Current Speed", getAgitatorMotorRPM());
 
   }
 }

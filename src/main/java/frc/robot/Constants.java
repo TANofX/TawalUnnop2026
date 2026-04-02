@@ -240,6 +240,7 @@ public final class Constants {
 
   public static final class Indexer {
     public static final int INDEXER_MOTOR_ID = 40;
+    public static final int AGITATOR_MOTOR_ID = 41;
     public static final int CURRENT_LIMIT = 50;
     public static final double VOLTAGE_LIMIT = 10;
     public static final double SPEED = 0.75;
