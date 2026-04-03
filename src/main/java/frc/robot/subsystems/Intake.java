@@ -72,10 +72,10 @@ public class Intake extends SubsystemBase {
     liftLimitSwitchConfig = new LimitSwitchConfig();
     liftLimitSwitchConfig
         .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-        .forwardLimitSwitchType(Type.kNormallyClosed)
+        .forwardLimitSwitchType(Type.kNormallyOpen)
         .forwardLimitSwitchPosition(25)
         .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-        .reverseLimitSwitchType(Type.kNormallyClosed)
+        .reverseLimitSwitchType(Type.kNormallyOpen)
         .reverseLimitSwitchPosition(0);
 
     intakeMotorConfig = new SparkFlexConfig();
@@ -98,8 +98,8 @@ public class Intake extends SubsystemBase {
         .apply(liftLimitSwitchConfig);
     liftMotor.configure(liftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    liftLimitSwitchUp = liftMotor.getForwardLimitSwitch();
-    liftLimitSwitchDown = liftMotor.getReverseLimitSwitch();
+    liftLimitSwitchUp = liftMotor.getReverseLimitSwitch();
+    liftLimitSwitchDown = liftMotor.getForwardLimitSwitch();
     intakeLiftSpeed = Constants.Intake.INTAKE_LIFT_SPEED;
     intakeSpeed = Constants.Intake.INTAKE_SPEED; // Using constant for now
 
