@@ -90,12 +90,14 @@ public class Indexer extends SubsystemBase {
 
   public void indexerForward() {
     indexerMotor.set(Constants.Indexer.SPEED);
+    agitatorMotor.set(Constants.Indexer.SPEED);
     // indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
     // agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
     indexerMotor.set(Constants.Indexer.SPEED * -1);
+    agitatorMotor.set(Constants.Indexer.SPEED * -1);
     // indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
     // agitatorMotorController.setSetpoint(-4000, ControlType.kVelocity);
   }

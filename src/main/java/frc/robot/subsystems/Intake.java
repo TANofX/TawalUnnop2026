@@ -154,7 +154,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void intakeForward() {
-    intakeMotor.set(intakeSpeed);
+    intakeMotor.set(intakeSpeed * -1);
   }
   public void raiseIntakeToJostle() {
     liftMotor.set(.1);
@@ -168,7 +168,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void intakeBackward() {
-    intakeMotor.set(intakeSpeed * -1);
+    intakeMotor.set(intakeSpeed);
   }
 
   public void stopLift() {
