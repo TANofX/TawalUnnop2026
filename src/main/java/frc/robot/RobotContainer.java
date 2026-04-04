@@ -165,8 +165,8 @@ public class RobotContainer {
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     driver.RT().whileTrue(shootTestFuelCommand());
-    driver.Y().onTrue(intake.putUpIntake());
-
+    driver.Y().whileTrue(intake.putUpIntake());
+    driver.A().whileTrue(indexer.clearFuel());
     coDriver.DUp().whileTrue(intakePushFuel());
     coDriver.DDown().whileTrue(manualIntakeDownCommand());
     coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
@@ -187,10 +187,10 @@ public class RobotContainer {
         new FixedShooter(shooter, turret, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
-private Command shootTestFuelCommand() {
+  private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
-          double targetRPM = 3000; // test value
+          double targetRPM = 800; // test value
           shooter.setShooterRPM(targetRPM, targetRPM);
         }, shooter).finallyDo(() -> shooter.stopShooterMotors());
 }

@@ -94,7 +94,7 @@ public class Intake extends SubsystemBase {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
         .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
-        .inverted(false)
+        .inverted(true)
         .apply(liftLimitSwitchConfig);
     liftMotor.configure(liftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -146,11 +146,11 @@ public class Intake extends SubsystemBase {
   }
 
   public void lowerIntake() {
-    liftMotor.set(intakeLiftSpeed * -1);
+    liftMotor.set(intakeLiftSpeed);
   }
 
   public void raiseIntake() {
-    liftMotor.set(intakeLiftSpeed);
+    liftMotor.set(intakeLiftSpeed * -1);
   }
 
   public void intakeForward() {
@@ -162,7 +162,7 @@ public class Intake extends SubsystemBase {
   public void intakeToJostle() {
     intakeMotor.set(0.2);
     
-  }
+  } 
   public void lowerIntakeManually() {
     liftMotor.set(-.1);
   }
