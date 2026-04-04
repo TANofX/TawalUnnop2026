@@ -158,7 +158,7 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void intakeForward() {
-    intakeMotor.set(intakeSpeed * powerLimit);
+    intakeMotor.set(intakeSpeed * powerLimit * -1);
   }
   public void raiseIntakeToJostle() {
     liftMotor.set(.1);
@@ -172,7 +172,7 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void intakeBackward() {
-    intakeMotor.set((intakeSpeed * -1 * powerLimit));
+    intakeMotor.set((intakeSpeed * powerLimit));
   }
 
   public void stopLift() {

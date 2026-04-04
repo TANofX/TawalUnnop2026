@@ -35,6 +35,7 @@ import frc.lib.input.controllers.XboxControllerWrapper;
 import frc.lib.swerve.TunerConstants;
 import frc.lib.util.BatteryUsage;
 import frc.robot.commands.CalibrateTurret;
+import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
 import frc.robot.commands.NoTurretCommand;
 import frc.robot.commands.BumpPosition;
@@ -148,7 +149,7 @@ public class RobotContainer {
     coDriver.START();
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
-        Commands.sequence(new CalibrateTurret(turret), new NoTurretCommand(turret, Constants.Turret.NO_TURRET_ANGLE)));
+        Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret,fireControl)));
     drivetrain.setDefaultCommand(
         drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
             .withVelocityY(-joystick.getLeftX() * MaxSpeed)
@@ -167,7 +168,7 @@ public class RobotContainer {
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     driver.RT().whileTrue(shootTestFuelCommand());
     driver.Y().whileTrue(intake.putUpIntake());
-    driver.A().whileTrue(indexer.clearFuel());
+    driver.A().whileTrue(indexer.shootFuel());
     coDriver.DUp().whileTrue(intakePushFuel());
     coDriver.DDown().whileTrue(manualIntakeDownCommand());
     coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
@@ -191,7 +192,7 @@ public class RobotContainer {
   private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
-          double targetRPM = 800; // test value
+          double targetRPM = 3000; // test value
           shooter.setShooterRPM(targetRPM, targetRPM);
         }, shooter).finallyDo(() -> shooter.stopShooterMotors());
 }
