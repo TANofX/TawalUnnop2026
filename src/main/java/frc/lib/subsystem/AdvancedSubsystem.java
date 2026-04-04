@@ -18,6 +18,7 @@ import frc.lib.subsystem.selfcheck.SelfCheckingCANCoderPro;
 import frc.lib.subsystem.selfcheck.SelfCheckingPigeon2;
 import frc.lib.subsystem.selfcheck.SelfCheckingSparkBase;
 import frc.lib.subsystem.selfcheck.SelfCheckingTalonFXPro;
+import frc.lib.util.BatteryUsage;
 
 public abstract class AdvancedSubsystem extends SubsystemBase {
   public enum SystemStatus {
@@ -104,8 +105,10 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
   }
 
   protected void reportPowerUsage(String device, double amps, double volts) {
-    //    BatteryUsage.reportUsage(this.getName(), device, amps, volts);
+       BatteryUsage.reportUsage(this.getName() + "/" + device, amps, volts);
   }
+
+  public abstract void setPowerLimit(double limit);
 
   protected void addFault(SubsystemFault fault) {
     if (!this.faults.contains(fault)) {

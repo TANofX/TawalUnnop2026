@@ -4,6 +4,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Indexer;
@@ -33,8 +34,10 @@ public class ShootWithIndexer extends Command {
   public void execute() {
     if (shooter.runIndexer() && turret.isAtTarget()) {
       indexer.indexerForward();
+      SmartDashboard.putString("Indexer Default Command", "forward");
     } else {
       indexer.stopIndexer();
+      SmartDashboard.putString("Indexer Default Command", "stops");
     }
   }
 

@@ -22,10 +22,11 @@ import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
-public class Indexer extends SubsystemBase {
+public class Indexer extends AdvancedSubsystem {
   private final SparkFlex indexerMotor;
   private final SparkFlexConfig indexerMotorConfig;
   private final SparkClosedLoopController indexerMotorController;
@@ -43,6 +44,7 @@ public class Indexer extends SubsystemBase {
       DCMotor.getNeoVortex(1));
 
   public Indexer(int indexerMotorID, int agitatorMotorID) {
+    BatteryUsage.registerDevice(getName(), 1);
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
     indexerMotorController = indexerMotor.getClosedLoopController();
     indexerMotorConfig = new SparkFlexConfig();
@@ -89,15 +91,17 @@ public class Indexer extends SubsystemBase {
   }
 
   public void indexerForward() {
-    // indexerMotor.set(Constants.Indexer.SPEED);
-    indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
-    agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
+    indexerMotor.set(Constants.Indexer.SPEED);
+    agitatorMotor.set(Constants.Indexer.SPEED);
+    // indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
+    // agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
-    // indexerMotor.set(Constants.Indexer.SPEED * -1);
-    indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
-    agitatorMotorController.setSetpoint(-4000, ControlType.kVelocity);
+    indexerMotor.set(Constants.Indexer.SPEED * -1);
+    agitatorMotor.set(Constants.Indexer.SPEED * -1);
+    // indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
+    // agitatorMotorController.setSetpoint(-4000, ControlType.kVelocity);
   }
 
   public void stopIndexer() {
@@ -126,5 +130,18 @@ public class Indexer extends SubsystemBase {
     SmartDashboard.putNumber("Indexer/Indexer Current Speed", getIndexerMotorRPM());
     SmartDashboard.putNumber("Indexer/Indexer Current Speed", getAgitatorMotorRPM());
 
+    reportPowerUsage(getName(), indexerMotor.getAppliedOutput() * indexerMotor.getBusVoltage(), indexerMotor.getOutputCurrent());
+  }
+
+  @Override
+  protected Command systemCheckCommand() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
+  }
+
+  @Override
+  public void setPowerLimit(double limit) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setPowerLimit'");
   }
 }

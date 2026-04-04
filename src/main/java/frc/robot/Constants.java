@@ -217,7 +217,7 @@ public final class Constants {
     public static final int INTAKE_LIFT_MOTOR_ID = 21;
     @CanId(CanId.Type.MOTOR)
     public static final int INTAKE_MOTOR_ID = 20;
-    public static final double INTAKE_LIFT_SPEED = 0.1;
+    public static final double INTAKE_LIFT_SPEED = 0.15;
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
     public static final double INTAKE_SPEED = 0.75;
@@ -243,7 +243,7 @@ public final class Constants {
     public static final int AGITATOR_MOTOR_ID = 41;
     public static final int CURRENT_LIMIT = 50;
     public static final double VOLTAGE_LIMIT = 10;
-    public static final double SPEED = 0.75;
+    public static final double SPEED = 0.5;
     public static final double WHEEL_MOMENT_OF_INERTIA = 3.8;
     public static final double INDEXER_GEAR_RATIO = 1.0 / 10.0;
 
@@ -268,63 +268,6 @@ public final class Constants {
     public static final class PathFollowing {
       public static final PIDConstants TRANSLATION_CONSTANTS = new PIDConstants(4.0, 0.0, 0.0);
       public static final PIDConstants ROTATION_CONSTANTS = new PIDConstants(8.0, 0.0, 0.8);
-    }
-
-    public static final class FrontRightModule { //front right 
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 14; 
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 10;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 10;
-      public static final Angle ENCODER_OFFSET = Rotations.of(0.109130859375);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false;
-      public static final Distance X_POS = Inches.of(11.75);
-      public static final Distance Y_POS = Inches.of(-10.25);
-    }
-
-    public static final class FrontLeftModule {
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 15;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 11;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 11;
-      public static final Angle ENCODER_OFFSET = Rotations.of(-0.21533203125);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false; 
-      public static final Distance X_POS = Inches.of(11.75);
-      public static final Distance Y_POS = Inches.of(10.25);
-    }
-
-    public static final class BackRightModule { //back right
-      
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 17;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 13;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 13;
-      public static final Angle ENCODER_OFFSET = Rotations.of(0.065185546875);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false;
-      public static final Distance X_POS = Inches.of(-11.75);
-      public static final Distance Y_POS = Inches.of(-10.25);
-    }
-
-    public static final class BackLeftModule { //back left
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 16;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 12;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 12;
-      public static final Angle ENCODER_OFFSET = Rotations.of(0.212646484375);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false;
-      public static final Distance X_POS = Inches.of(-11.75);
-      public static final Distance Y_POS = Inches.of(10.25);
     }
   }
 

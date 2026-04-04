@@ -15,6 +15,7 @@
     "**/*~": true
   },
   "java.test.config": [
+    
     {
       "name": "WPIlibUnitTests",
       "workingDirectory": "${workspaceFolder}/build/jni/release",
