@@ -110,7 +110,7 @@ public class Shooter extends AdvancedSubsystem {
       final int TOP_RIGHT_SHOOTER_ID,
       final int BOTTOM_RIGHT_SHOOTER_ID) {
 
-    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
+    BatteryUsage.registerDevice(getName(), 0);
 
     // CREATE MOTORS
     shooterLeftBottomMotor = new SparkFlex(BOTTOM_LEFT_SHOOTER_ID, MotorType.kBrushless);

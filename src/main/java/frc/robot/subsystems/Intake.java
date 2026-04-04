@@ -69,7 +69,7 @@ public class Intake extends AdvancedSubsystem {
       DCMotor.getNeoVortex(1));
 
   public Intake(int liftMotorID, int intakeMotorID) {
-    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
+    BatteryUsage.registerDevice(getName(), 2);
     liftMotor = new SparkMax(liftMotorID, MotorType.kBrushless);
     intakeMotor = new SparkFlex(intakeMotorID, MotorType.kBrushless);
 

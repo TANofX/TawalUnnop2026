@@ -44,7 +44,7 @@ public class Indexer extends AdvancedSubsystem {
       DCMotor.getNeoVortex(1));
 
   public Indexer(int indexerMotorID, int agitatorMotorID) {
-    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
+    BatteryUsage.registerDevice(getName(), 1);
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
     indexerMotorController = indexerMotor.getClosedLoopController();
     indexerMotorConfig = new SparkFlexConfig();
