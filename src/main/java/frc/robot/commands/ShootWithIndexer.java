@@ -31,7 +31,7 @@ public class ShootWithIndexer extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (shooter.runIndexer() && turret.isAtTarget()) { //TODO
+    if (shooter.runIndexer() && turret.isAtTarget()) {
       indexer.indexerForward();
     } else {
       indexer.stopIndexer();

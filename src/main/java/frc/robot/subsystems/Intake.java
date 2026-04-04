@@ -76,10 +76,10 @@ public class Intake extends AdvancedSubsystem {
     liftLimitSwitchConfig = new LimitSwitchConfig();
     liftLimitSwitchConfig
         .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-        .forwardLimitSwitchType(Type.kNormallyClosed)
+        .forwardLimitSwitchType(Type.kNormallyOpen)
         .forwardLimitSwitchPosition(25)
         .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-        .reverseLimitSwitchType(Type.kNormallyClosed)
+        .reverseLimitSwitchType(Type.kNormallyOpen)
         .reverseLimitSwitchPosition(0);
 
     intakeMotorConfig = new SparkFlexConfig();
@@ -98,12 +98,12 @@ public class Intake extends AdvancedSubsystem {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
         .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
-        .inverted(false)
+        .inverted(true)
         .apply(liftLimitSwitchConfig);
     liftMotor.configure(liftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    liftLimitSwitchUp = liftMotor.getForwardLimitSwitch();
-    liftLimitSwitchDown = liftMotor.getReverseLimitSwitch();
+    liftLimitSwitchUp = liftMotor.getReverseLimitSwitch();
+    liftLimitSwitchDown = liftMotor.getForwardLimitSwitch();
     intakeLiftSpeed = Constants.Intake.INTAKE_LIFT_SPEED;
     intakeSpeed = Constants.Intake.INTAKE_SPEED; // Using constant for now
 
@@ -150,11 +150,11 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void lowerIntake() {
-    liftMotor.set((intakeLiftSpeed * -1) * powerLimit);
+    liftMotor.set(intakeLiftSpeed);
   }
 
   public void raiseIntake() {
-    liftMotor.set(intakeLiftSpeed * powerLimit);
+    liftMotor.set(intakeLiftSpeed * -1);
   }
 
   public void intakeForward() {
@@ -166,7 +166,7 @@ public class Intake extends AdvancedSubsystem {
   public void intakeToJostle() {
     intakeMotor.set(0.2);
     
-  }
+  } 
   public void lowerIntakeManually() {
     liftMotor.set(-.1);
   }
