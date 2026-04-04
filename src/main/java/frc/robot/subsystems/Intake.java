@@ -4,13 +4,13 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.LimitSwitchConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
@@ -69,6 +69,7 @@ public class Intake extends AdvancedSubsystem {
       DCMotor.getNeoVortex(1));
 
   public Intake(int liftMotorID, int intakeMotorID) {
+    super("Intake");
     BatteryUsage.registerDevice(getName(), 2);
     liftMotor = new SparkMax(liftMotorID, MotorType.kBrushless);
     intakeMotor = new SparkFlex(intakeMotorID, MotorType.kBrushless);
@@ -232,7 +233,6 @@ public class Intake extends AdvancedSubsystem {
 
   @Override
   protected Command systemCheckCommand() {
-    // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
   }
 

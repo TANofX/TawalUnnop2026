@@ -4,10 +4,9 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -44,6 +43,7 @@ public class Indexer extends AdvancedSubsystem {
       DCMotor.getNeoVortex(1));
 
   public Indexer(int indexerMotorID, int agitatorMotorID) {
+    super("Indexer");
     BatteryUsage.registerDevice(getName(), 1);
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
     indexerMotorController = indexerMotor.getClosedLoopController();
@@ -52,6 +52,7 @@ public class Indexer extends AdvancedSubsystem {
         Constants.Indexer.INDEXER_kA);
     indexerMotorConfig.closedLoop.pid(Constants.Indexer.INDEXER_P, Constants.Indexer.INDEXER_I,
         Constants.Indexer.INDEXER_D);
+    indexerMotorConfig.closedLoopRampRate(Constants.Indexer.RAMP_RATE);
     indexerMotorConfig
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(Constants.Indexer.CURRENT_LIMIT)
@@ -141,7 +142,5 @@ public class Indexer extends AdvancedSubsystem {
 
   @Override
   public void setPowerLimit(double limit) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'setPowerLimit'");
   }
 }

@@ -109,6 +109,7 @@ public class Shooter extends AdvancedSubsystem {
       final int BOTTOM_LEFT_SHOOTER_ID,
       final int TOP_RIGHT_SHOOTER_ID,
       final int BOTTOM_RIGHT_SHOOTER_ID) {
+    super("Shooter");
 
     BatteryUsage.registerDevice(getName(), 0);
 
@@ -390,7 +391,6 @@ public class Shooter extends AdvancedSubsystem {
     
       @Override
   protected Command systemCheckCommand() {
-    // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
   }
 

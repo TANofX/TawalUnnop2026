@@ -105,7 +105,7 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
   }
 
   protected void reportPowerUsage(String device, double amps, double volts) {
-       BatteryUsage.reportUsage(this.getName() + "/" + device, amps, volts);
+       BatteryUsage.reportUsage(device, amps, volts);
   }
 
   public abstract void setPowerLimit(double limit);

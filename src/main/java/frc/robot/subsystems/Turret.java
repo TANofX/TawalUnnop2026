@@ -58,7 +58,7 @@ public class Turret extends AdvancedSubsystem {
         turretEncoder = turretMotor.getEncoder();
         turretMotorController = turretMotor.getClosedLoopController();
 
-        BatteryUsage.registerDevice(turretName, 2);
+        BatteryUsage.registerDevice(getName(), 2);
     }
 
     public boolean isOnLimitSwitch() {

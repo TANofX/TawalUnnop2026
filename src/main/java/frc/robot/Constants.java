@@ -1,9 +1,6 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
-import static edu.wpi.first.units.Units.Rotations;
-
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,7 +23,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 
 public final class Constants {
@@ -133,12 +129,10 @@ public final class Constants {
   public static final double HOOD_ANGLE = 0; //TODO hood angle
 
   public static final class Joystick {
-
     // TODO PID Constants for bump angle constraint
     public static final double kP = 0.04;
     public static final double kI = 0;
     public static final double kD = 0;
-
   }
 
   public static final class LEDs {
@@ -254,6 +248,8 @@ public final class Constants {
     public static final double INDEXER_P = 0.00003;
     public static final double INDEXER_I = 0.000001;
     public static final double INDEXER_D = 0.00001;
+    
+    public static final double RAMP_RATE = 0.5;
   }
 
   public static final class Swerve {
@@ -316,7 +312,7 @@ public final class Constants {
     public static final double BOTTOM_kA = 0.00021225;
     public static final double BOTTOM_kS = 0.25114;
 
-    public static final double RAMP_RATE = 0.1;
+    public static final double RAMP_RATE = 0.5;
 
     public static final double BITTY_kV = 0.0018718;
     public static final double BITTY_kA = 0.00015177;

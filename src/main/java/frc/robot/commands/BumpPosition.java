@@ -31,7 +31,7 @@ public class BumpPosition extends Command {
     if (side == "right") {
       if (!isRedAlliance) {
         swerve.resetPose(
-            new Pose2d(Units.inchesToMeters(156.61-(26/2)), Units.inchesToMeters(158.32+(73/2)), Rotation2d.fromDegrees(270))); //TODO check location and specificly angle
+            new Pose2d(Units.inchesToMeters(156.61-(26/2)), Units.inchesToMeters(158.32+(73/2)), Rotation2d.fromDegrees(270)));
         // blue side right
       } else {
         swerve.resetPose(
