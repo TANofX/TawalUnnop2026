@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
 public class Shooter extends AdvancedSubsystem {
@@ -109,6 +110,9 @@ public class Shooter extends AdvancedSubsystem {
       final int BOTTOM_LEFT_SHOOTER_ID,
       final int TOP_RIGHT_SHOOTER_ID,
       final int BOTTOM_RIGHT_SHOOTER_ID) {
+
+    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
+
     // CREATE MOTORS
     shooterLeftBottomMotor = new SparkFlex(BOTTOM_LEFT_SHOOTER_ID, MotorType.kBrushless);
     shooterLeftTopMotor = new SparkFlex(TOP_LEFT_SHOOTER_ID, MotorType.kBrushless);

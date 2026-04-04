@@ -6,16 +6,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class BatteryUsageTest {
+
     @BeforeAll
     public static void resetBatteryUsage() {
+        BatteryUsage.reset();
+        BatteryUsage.registerDevice("partOne", 0);
+        BatteryUsage.registerDevice("partTwo", 0);
         BatteryUsage.reportUsage("partOne", 5, 5);
         BatteryUsage.reportUsage("partTwo", 5, 5);
     }
 
     @Test
     public void testUsageSum() {
-        System.out.println("Expected: 10\nReal (a, v): " + BatteryUsage.getTotalAmps() + ", " + BatteryUsage.getTotalVoltage());
-
         assertEquals(10, BatteryUsage.getTotalVoltage(), "Voltage didn't match");
         assertEquals(10, BatteryUsage.getTotalAmps(), "Amperage didn't match");
     }

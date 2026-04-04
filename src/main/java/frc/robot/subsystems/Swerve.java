@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.lib.subsystem.AdvancedSubsystem;
 import frc.lib.swerve.Mk4SwerveModulePro;
+import frc.lib.util.BatteryUsage;
 import frc.lib.util.Vector3;
 import frc.robot.Constants;
 import frc.robot.util.RobotPoseLookup;
@@ -76,6 +77,8 @@ public final class Swerve extends AdvancedSubsystem {
   public Swerve() {
     super("Swerve");
     poseLookup = new RobotPoseLookup<>();
+
+    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
 
     imu = new Pigeon2(Constants.Swerve.IMU_ID, Constants.CARNIVORE_BUS_NAME);
     Pigeon2Configuration imuConfig = new Pigeon2Configuration();

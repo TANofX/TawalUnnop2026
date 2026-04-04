@@ -21,6 +21,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
 public class Turret extends AdvancedSubsystem {
@@ -59,6 +60,8 @@ public class Turret extends AdvancedSubsystem {
         turretMotor.configure(turretMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         turretEncoder = turretMotor.getEncoder();
         turretMotorController = turretMotor.getClosedLoopController();
+
+        BatteryUsage.registerDevice(turretName, 0); // TODO set priority
     }
 
     public boolean isOnLimitSwitch() {

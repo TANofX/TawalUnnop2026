@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
 public class Intake extends AdvancedSubsystem {
@@ -68,6 +69,7 @@ public class Intake extends AdvancedSubsystem {
       DCMotor.getNeoVortex(1));
 
   public Intake(int liftMotorID, int intakeMotorID) {
+    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
     liftMotor = new SparkMax(liftMotorID, MotorType.kBrushless);
     intakeMotor = new SparkFlex(intakeMotorID, MotorType.kBrushless);
 

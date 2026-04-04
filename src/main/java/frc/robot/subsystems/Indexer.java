@@ -16,15 +16,14 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
 public class Indexer extends AdvancedSubsystem {
@@ -42,6 +41,7 @@ public class Indexer extends AdvancedSubsystem {
       DCMotor.getNeoVortex(1));
 
   public Indexer(int indexerMotorID) {
+    BatteryUsage.registerDevice(getName(), 0); // TODO set priority
     indexerMotor = new SparkFlex(indexerMotorID, MotorType.kBrushless);
     indexerMotorController = indexerMotor.getClosedLoopController();
     indexerMotorConfig = new SparkFlexConfig();
