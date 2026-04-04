@@ -10,7 +10,6 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -33,11 +32,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.input.controllers.XboxControllerWrapper;
 import frc.lib.swerve.TunerConstants;
-import frc.lib.util.BatteryUsage;
+import frc.lib.util.DriveModes;
+import frc.lib.util.DriveModes.Modes;
 import frc.robot.commands.CalibrateTurret;
 import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
-import frc.robot.commands.NoTurretCommand;
 import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
@@ -68,11 +67,6 @@ public class RobotContainer {
 
   private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
-
-  /* Setting up bindings for necessary control of the swerve drive platform */
-  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -111,6 +105,8 @@ public class RobotContainer {
       },
       () -> DriverStation.getAlliance().orElse(Alliance.Blue),
       () -> new ChassisSpeeds());
+      
+  private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate);
   
   public static final PowerManagement powerManagement = new PowerManagement(false);
   private final SendableChooser<Command> autoChooser;
@@ -126,7 +122,6 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureButtonBindings();
-
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
     
@@ -157,10 +152,9 @@ public class RobotContainer {
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
         Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret,fireControl)));
+    driveMode.setMode(Modes.NORMAL_JOYSTICK);
     drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
-            .withVelocityY(-joystick.getLeftX() * MaxSpeed)
-            .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+        drivetrain.applyRequest(() -> driveMode.getDriveRequest()
         ));
     
     SmartDashboard.putData(new ZeroTurret(turret));

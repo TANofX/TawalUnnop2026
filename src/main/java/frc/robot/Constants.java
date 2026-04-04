@@ -255,6 +255,11 @@ public final class Constants {
   public static final class Swerve {
     @CanId(CanId.Type.PIGEON)
     public static final int IMU_ID = 3;
+    public static final double TELEOP_MAX_VELOCITY = 4.6;
+    public static final double TELEOP_MAX_ACCELERATION = 5.5; // todo
+    public static final double TELEOP_MAX_ANGULAR_VELOCITY = Units.degreesToRadians(180);
+    public static final double TELEOP_MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(540);
+    public static final double TELEOP_ANGLE_HOLD_FACTOR = 3.0;
 
     public static final class Odometry {
       public static final Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.02, 0.02, 0.01); // TODO change state StdDev for Odom

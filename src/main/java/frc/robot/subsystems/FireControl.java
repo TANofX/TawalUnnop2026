@@ -27,6 +27,7 @@ public class FireControl extends SubsystemBase {
     private ArrayList<Pose2d> redList = new ArrayList<>(2);
     private ArrayList<Pose2d> blueList = new ArrayList<>(2);
     private Rotation2d currentTarget;
+    private Rotation2d robotTarget;
     private double distanceFromTarget;
     private Pose2d target;
     private Supplier<ChassisSpeeds> speedSupplier;
@@ -50,14 +51,23 @@ public class FireControl extends SubsystemBase {
         File csvFile = new File(deployDirectory, rpmFile);
         readCsv(csvFile.getAbsolutePath());
     }
+       /**
+     * @return Finds the target angle off of the robot position and the target
+     *         position
+     */
+    private static Rotation2d getAngleToTarget(Pose2d robotPose, Pose2d targetPose) {
+        Translation2d toTarget = targetPose.getTranslation().minus(robotPose.getTranslation());
+        Rotation2d targetAngle = toTarget.getAngle();
+
+        return targetAngle;
+    }
 
     /**
      * @return Finds the target angle off of the robot position and the target
      *         position
      */
     private static Rotation2d getTargetRotation(Pose2d robotPose, Pose2d targetPose) {
-        Translation2d toTarget = targetPose.getTranslation().minus(robotPose.getTranslation());
-        Rotation2d targetAngle = toTarget.getAngle();
+        Rotation2d targetAngle = getAngleToTarget(robotPose, targetPose);
         Rotation2d relativeAngle = targetAngle.minus(robotPose.getRotation());
 
         return relativeAngle;
@@ -151,6 +161,7 @@ public class FireControl extends SubsystemBase {
         Pose2d turretPose2d = robotSupplier.get();
         target = getClosestTarget(turretPose2d);
         currentTarget = getTargetRotation(turretPose2d, target);
+        robotTarget = getAngleToTarget(turretPose2d, target);
         distanceFromTarget = getDistance(target, turretPose2d);
 
         SmartDashboard.putNumber("Fire Control/Target Angle", currentTarget.getDegrees());
@@ -219,4 +230,7 @@ public class FireControl extends SubsystemBase {
         return target;
     }
 
+    public Rotation2d getRobotTarget() {
+        return robotTarget;
+    }
 }
