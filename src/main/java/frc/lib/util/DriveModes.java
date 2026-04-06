@@ -4,6 +4,12 @@
 
 package frc.lib.util;
 
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -25,18 +31,20 @@ public class DriveModes {
     private final FireControl fireControl;
     private final PIDController pidController;
     private final SlewRateLimiter angularVelLimiter;
+    private final DoubleSupplier angularTestSupplier;
 
     private Modes currentMode = Modes.NORMAL_JOYSTICK;
 
     public DriveModes(CommandXboxController joystick, CommandSwerveDrivetrain swerve, FireControl fireControl,
             double maxSpeed,
-            double maxAngularRate) {
+            double maxAngularRate, DoubleSupplier angularTestSupplier) {
         drive = new SwerveRequest.FieldCentric()
                 .withDeadband(maxSpeed * 0.1).withRotationalDeadband(maxAngularRate * 0.1)
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
         controller = joystick;
         drivetrain = swerve;
         this.fireControl = fireControl;
+        this.angularTestSupplier = angularTestSupplier;
         speed = maxSpeed;
         angularRate = maxAngularRate;
         pidController = new PIDController(Constants.Joystick.kP, Constants.Joystick.kI, Constants.Joystick.kD);
@@ -101,8 +109,14 @@ public class DriveModes {
                 angularVelocity = angularVelocityCalc(currentAngleDeg, shootingTarget);
 
                 break;
+            case TESTING:
+                double targetJoystickAngle = -angularTestSupplier.getAsDouble() * RotationsPerSecond.of(0.25).in(RadiansPerSecond);
+                angularVelocity = angularVelocityCalc(currentAngleDeg, targetJoystickAngle);
+
+                break;
             default:
                 angularVelocity = -controller.getRightX() * angularRate;
+
         }
 
         return drive.withVelocityX(xVelocity)
@@ -113,6 +127,7 @@ public class DriveModes {
     public enum Modes {
         NORMAL_JOYSTICK,
         BUMP,
-        SHOOTING_ANGLE
+        SHOOTING_ANGLE,
+        TESTING
     }
 }

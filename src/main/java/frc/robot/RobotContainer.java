@@ -110,7 +110,7 @@ public class RobotContainer {
       () -> DriverStation.getAlliance().orElse(Alliance.Blue),
       () -> new ChassisSpeeds());
       
-  private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate);
+  private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate, () -> logController.getRightX());
   
   public static final PowerManagement powerManagement = new PowerManagement(false);
   private final SendableChooser<Command> autoChooser;
@@ -186,8 +186,6 @@ public class RobotContainer {
     coDriver.B().whileTrue(CreateFixedShooterCommand(() -> rightTrenchAngle, () -> rightTrenchRPM));
     coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
     coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
-
-    drivetrain.applyRequest(() -> drive.withRotationalRate(-shooterJoystick.getRightX() * RotationsPerSecond.of(0.25).in(RadiansPerSecond)));
     
     logController.DRight().onTrue(
     Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
@@ -197,6 +195,9 @@ public class RobotContainer {
         Commands.runOnce(() -> shooterAdjust.adjustRPM(-shooterAdjust.getIncrement()))
     );
     logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
+    logController.B().toggleOnTrue(Commands.startEnd(() -> driveMode.setMode(Modes.TESTING), () -> driveMode.setMode(Modes.NORMAL_JOYSTICK), drivetrain));
+
+    
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 
