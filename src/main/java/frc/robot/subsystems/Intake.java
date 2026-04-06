@@ -162,10 +162,10 @@ public class Intake extends AdvancedSubsystem {
     intakeMotor.set(intakeSpeed * powerLimit * -1);
   }
   public void raiseIntakeToJostle() {
-    liftMotor.set(.1);
+    liftMotor.set(-0.1);
   }
   public void intakeToJostle() {
-    intakeMotor.set(0.2);
+    intakeMotor.set(-0.2);
     
   } 
   public void lowerIntakeManually() {

@@ -139,7 +139,7 @@ public class RobotContainer {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    // vision.addCamera("heart", Constants.Vision.robotToHeart);
+    vision.addCamera("heart", Constants.Vision.robotToHeart);
     // vision.addCamera("club", Constants.Vision.robotToClub);
     // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
