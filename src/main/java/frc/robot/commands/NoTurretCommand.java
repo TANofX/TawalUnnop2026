@@ -29,7 +29,6 @@ public class NoTurretCommand extends Command {
   @Override
   public void execute() {
     theTurret.pointToTarget(angle);
-
   }
 
   // Called once the command ends or is interrupted.

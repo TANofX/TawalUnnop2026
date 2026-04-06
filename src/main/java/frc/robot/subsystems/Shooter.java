@@ -19,10 +19,13 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
-public class Shooter extends SubsystemBase {
+public class Shooter extends AdvancedSubsystem {
+  private double powerLimit = 1;
+
   // view from shooter side
   private final SparkFlex shooterLeftBottomMotor;
   private final SparkFlex shooterLeftTopMotor;
@@ -106,6 +109,10 @@ public class Shooter extends SubsystemBase {
       final int BOTTOM_LEFT_SHOOTER_ID,
       final int TOP_RIGHT_SHOOTER_ID,
       final int BOTTOM_RIGHT_SHOOTER_ID) {
+    super("Shooter");
+
+    BatteryUsage.registerDevice(getName(), 0);
+
     // CREATE MOTORS
     shooterLeftBottomMotor = new SparkFlex(BOTTOM_LEFT_SHOOTER_ID, MotorType.kBrushless);
     shooterLeftTopMotor = new SparkFlex(TOP_LEFT_SHOOTER_ID, MotorType.kBrushless);
@@ -214,14 +221,14 @@ public class Shooter extends SubsystemBase {
 
   // setting the shooter rpm based off of the table
   public void setShooterRPM(double topRPM, double bottomRPM) {
-    topTargetRPM = topRPM;
-    bottomTargetRPM = bottomRPM;
+    topTargetRPM = topRPM * powerLimit;
+    bottomTargetRPM = bottomRPM * powerLimit;
 
-    shooterTopController.setSetpoint(topRPM, ControlType.kVelocity);
-    shooterBottomController.setSetpoint(bottomRPM, ControlType.kVelocity);
+    shooterTopController.setSetpoint(topTargetRPM, ControlType.kVelocity);
+    shooterBottomController.setSetpoint(bottomTargetRPM, ControlType.kVelocity);
 
     if (shooterBittyBottomMotor != null) {
-      shooterBittyBottomController.setSetpoint(bottomRPM, ControlType.kVelocity);
+      shooterBittyBottomController.setSetpoint(bottomTargetRPM, ControlType.kVelocity);
     }
   }
 
@@ -377,5 +384,35 @@ public double getBottomCurrentDraw() {
     SmartDashboard.putNumber("Shooter/Top Applied", shooterRightTopMotor.getAppliedOutput());
     SmartDashboard.putNumber("Shooter/Bottom Applied", shooterRightBottomMotor.getAppliedOutput());
 
+    reportPowerUsage(getName(), getTotalCurrent(), getTotalVoltage());
+          }
+        
+          private double getTotalVoltage() {
+        double total = 0;
+        total += shooterLeftTopMotor.getAppliedOutput() * shooterLeftTopMotor.getBusVoltage();
+        total += shooterRightTopMotor.getAppliedOutput() * shooterRightTopMotor.getBusVoltage();
+        total += shooterLeftBottomMotor.getAppliedOutput() * shooterLeftBottomMotor.getBusVoltage();
+        total += shooterRightBottomMotor.getAppliedOutput() * shooterRightBottomMotor.getBusVoltage();
+        total += ((shooterBittyBottomMotor == null) ? 0 : shooterBittyBottomMotor.getAppliedOutput() * shooterBittyBottomMotor.getBusVoltage());
+
+        return shooterBittyBottomMotor == null ? 4 : 5;
+      }
+
+          private double getTotalCurrent() {
+        return shooterRightTopMotor.getOutputCurrent() 
+        + shooterLeftTopMotor.getOutputCurrent()
+        + shooterRightBottomMotor.getOutputCurrent()
+        + shooterLeftBottomMotor.getOutputCurrent()
+        + ((shooterBittyBottomMotor == null) ? 0 : shooterBittyBottomMotor.getOutputCurrent()); 
+      }
+    
+      @Override
+  protected Command systemCheckCommand() {
+    throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
   }
+
+      @Override
+      public void setPowerLimit(double limit) {
+        this.powerLimit = limit;
+      }
 }

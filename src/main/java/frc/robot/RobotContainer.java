@@ -10,7 +10,6 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -33,10 +32,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.input.controllers.XboxControllerWrapper;
 import frc.lib.swerve.TunerConstants;
+import frc.lib.util.DriveModes;
+import frc.lib.util.DriveModes.Modes;
 import frc.lib.util.RobotLogger;
 import frc.robot.commands.CalibrateTurret;
+import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
-import frc.robot.commands.NoTurretCommand;
 import frc.robot.commands.BumpPosition;
 import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
@@ -46,6 +47,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.PowerManagement;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
@@ -68,11 +70,6 @@ public class RobotContainer {
 
   private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
-
-  /* Setting up bindings for necessary control of the swerve drive platform */
-  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -112,7 +109,10 @@ public class RobotContainer {
       },
       () -> DriverStation.getAlliance().orElse(Alliance.Blue),
       () -> new ChassisSpeeds());
-
+      
+  private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate);
+  
+  public static final PowerManagement powerManagement = new PowerManagement(false);
   private final SendableChooser<Command> autoChooser;
   public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl, drivetrain);
   // private SendableChooser<Command> autoChooser() {
@@ -126,10 +126,14 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureButtonBindings();
-
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
     
+    powerManagement.addSubsystem(shooter);
+    powerManagement.addSubsystem(indexer);
+    powerManagement.addSubsystem(intake);
+    powerManagement.addSubsystem(turret);
+
   // Register Named PathPlanner Commands
     NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
     NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
@@ -139,7 +143,7 @@ public class RobotContainer {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    // vision.addCamera("heart", Constants.Vision.robotToHeart);
+    vision.addCamera("heart", Constants.Vision.robotToHeart);
     // vision.addCamera("club", Constants.Vision.robotToClub);
     // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
@@ -152,11 +156,10 @@ public class RobotContainer {
     coDriver.START();
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
-        Commands.sequence(new CalibrateTurret(turret), new NoTurretCommand(turret, Constants.Turret.NO_TURRET_ANGLE)));
+        Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret,fireControl)));
+    driveMode.setMode(Modes.NORMAL_JOYSTICK);
     drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
-            .withVelocityY(-joystick.getLeftX() * MaxSpeed)
-            .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+        drivetrain.applyRequest(() -> driveMode.getDriveRequest()
         ));
     
     SmartDashboard.putData(new ZeroTurret(turret));
@@ -170,8 +173,8 @@ public class RobotContainer {
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     driver.RT().whileTrue(shootTestFuelCommand());
-    driver.Y().onTrue(intake.putUpIntake());
-
+    driver.Y().whileTrue(intake.putUpIntake());
+    driver.A().whileTrue(indexer.shootFuel());
     coDriver.DUp().whileTrue(intakePushFuel());
     coDriver.DDown().whileTrue(manualIntakeDownCommand());
     coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
@@ -202,7 +205,7 @@ public class RobotContainer {
         new FixedShooter(shooter, turret, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
-private Command shootTestFuelCommand() {
+  private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
           double targetRPM = 3000; // test value

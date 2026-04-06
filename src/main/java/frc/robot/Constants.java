@@ -1,9 +1,6 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
-import static edu.wpi.first.units.Units.Rotations;
-
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,7 +23,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 
 public final class Constants {
@@ -133,12 +129,10 @@ public final class Constants {
   public static final double HOOD_ANGLE = 0; //TODO hood angle
 
   public static final class Joystick {
-
     // TODO PID Constants for bump angle constraint
     public static final double kP = 0.04;
     public static final double kI = 0;
     public static final double kD = 0;
-
   }
 
   public static final class LEDs {
@@ -217,7 +211,7 @@ public final class Constants {
     public static final int INTAKE_LIFT_MOTOR_ID = 21;
     @CanId(CanId.Type.MOTOR)
     public static final int INTAKE_MOTOR_ID = 20;
-    public static final double INTAKE_LIFT_SPEED = 0.25;
+    public static final double INTAKE_LIFT_SPEED = 0.15;
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
     public static final double INTAKE_SPEED = 0.75;
@@ -243,7 +237,7 @@ public final class Constants {
     public static final int AGITATOR_MOTOR_ID = 41;
     public static final int CURRENT_LIMIT = 50;
     public static final double VOLTAGE_LIMIT = 10;
-    public static final double SPEED = 0.75;
+    public static final double SPEED = 0.5;
     public static final double WHEEL_MOMENT_OF_INERTIA = 3.8;
     public static final double INDEXER_GEAR_RATIO = 1.0 / 10.0;
 
@@ -254,11 +248,18 @@ public final class Constants {
     public static final double INDEXER_P = 0.00003;
     public static final double INDEXER_I = 0.000001;
     public static final double INDEXER_D = 0.00001;
+    
+    public static final double RAMP_RATE = 0.5;
   }
 
   public static final class Swerve {
     @CanId(CanId.Type.PIGEON)
     public static final int IMU_ID = 3;
+    public static final double TELEOP_MAX_VELOCITY = 4.6;
+    public static final double TELEOP_MAX_ACCELERATION = 5.5; // todo
+    public static final double TELEOP_MAX_ANGULAR_VELOCITY = Units.degreesToRadians(180);
+    public static final double TELEOP_MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(540);
+    public static final double TELEOP_ANGLE_HOLD_FACTOR = 3.0;
 
     public static final class Odometry {
       public static final Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.02, 0.02, 0.01); // TODO change state StdDev for Odom
@@ -268,63 +269,6 @@ public final class Constants {
     public static final class PathFollowing {
       public static final PIDConstants TRANSLATION_CONSTANTS = new PIDConstants(4.0, 0.0, 0.0);
       public static final PIDConstants ROTATION_CONSTANTS = new PIDConstants(8.0, 0.0, 0.8);
-    }
-
-    public static final class FrontRightModule { //front right 
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 14; 
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 10;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 10;
-      public static final Angle ENCODER_OFFSET = Rotations.of(0.109130859375);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false;
-      public static final Distance X_POS = Inches.of(11.75);
-      public static final Distance Y_POS = Inches.of(-10.25);
-    }
-
-    public static final class FrontLeftModule {
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 15;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 11;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 11;
-      public static final Angle ENCODER_OFFSET = Rotations.of(-0.21533203125);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false; 
-      public static final Distance X_POS = Inches.of(11.75);
-      public static final Distance Y_POS = Inches.of(10.25);
-    }
-
-    public static final class BackRightModule { //back right
-      
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 17;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 13;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 13;
-      public static final Angle ENCODER_OFFSET = Rotations.of(0.065185546875);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false;
-      public static final Distance X_POS = Inches.of(-11.75);
-      public static final Distance Y_POS = Inches.of(-10.25);
-    }
-
-    public static final class BackLeftModule { //back left
-      @CanId(CanId.Type.MOTOR)
-      public static final int DRIVE_MOTOR_ID = 16;
-      @CanId(CanId.Type.MOTOR)
-      public static final int ROTATION_MOTOR_ID = 12;
-      @CanId(CanId.Type.ENCODER)
-      public static final int ROTATION_ENCODER_ID = 12;
-      public static final Angle ENCODER_OFFSET = Rotations.of(0.212646484375);
-      public static final boolean STEER_INVERTED = true;
-      public static final boolean ENCODER_INVERTED = false;
-      public static final Distance X_POS = Inches.of(-11.75);
-      public static final Distance Y_POS = Inches.of(10.25);
     }
   }
 
@@ -373,7 +317,7 @@ public final class Constants {
     public static final double BOTTOM_kA = 0.00021225;
     public static final double BOTTOM_kS = 0.25114;
 
-    public static final double RAMP_RATE = 0.1;
+    public static final double RAMP_RATE = 0.5;
 
     public static final double BITTY_kV = 0.0018718;
     public static final double BITTY_kA = 0.00015177;

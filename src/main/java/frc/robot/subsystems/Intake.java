@@ -4,13 +4,13 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.LimitSwitchConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
@@ -29,10 +29,13 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.subsystem.AdvancedSubsystem;
+import frc.lib.util.BatteryUsage;
 import frc.robot.Constants;
 
-public class Intake extends SubsystemBase {
+public class Intake extends AdvancedSubsystem {
+  private double powerLimit = 1;
+
   // assuming these are singletons
   private final SparkMax liftMotor;
   private final SparkFlex intakeMotor;
@@ -66,16 +69,18 @@ public class Intake extends SubsystemBase {
       DCMotor.getNeoVortex(1));
 
   public Intake(int liftMotorID, int intakeMotorID) {
+    super("Intake");
+    BatteryUsage.registerDevice(getName(), 2);
     liftMotor = new SparkMax(liftMotorID, MotorType.kBrushless);
     intakeMotor = new SparkFlex(intakeMotorID, MotorType.kBrushless);
 
     liftLimitSwitchConfig = new LimitSwitchConfig();
     liftLimitSwitchConfig
         .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-        .forwardLimitSwitchType(Type.kNormallyClosed)
+        .forwardLimitSwitchType(Type.kNormallyOpen)
         .forwardLimitSwitchPosition(25)
         .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotorAndSetPosition)
-        .reverseLimitSwitchType(Type.kNormallyClosed)
+        .reverseLimitSwitchType(Type.kNormallyOpen)
         .reverseLimitSwitchPosition(0);
 
     intakeMotorConfig = new SparkFlexConfig();
@@ -94,12 +99,12 @@ public class Intake extends SubsystemBase {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
         .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
-        .inverted(false)
+        .inverted(true)
         .apply(liftLimitSwitchConfig);
     liftMotor.configure(liftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    liftLimitSwitchUp = liftMotor.getForwardLimitSwitch();
-    liftLimitSwitchDown = liftMotor.getReverseLimitSwitch();
+    liftLimitSwitchUp = liftMotor.getReverseLimitSwitch();
+    liftLimitSwitchDown = liftMotor.getForwardLimitSwitch();
     intakeLiftSpeed = Constants.Intake.INTAKE_LIFT_SPEED;
     intakeSpeed = Constants.Intake.INTAKE_SPEED; // Using constant for now
 
@@ -146,29 +151,29 @@ public class Intake extends SubsystemBase {
   }
 
   public void lowerIntake() {
-    liftMotor.set(intakeLiftSpeed * -1);
-  }
-
-  public void raiseIntake() {
     liftMotor.set(intakeLiftSpeed);
   }
 
+  public void raiseIntake() {
+    liftMotor.set(intakeLiftSpeed * -1);
+  }
+
   public void intakeForward() {
-    intakeMotor.set(intakeSpeed);
+    intakeMotor.set(intakeSpeed * powerLimit * -1);
   }
   public void raiseIntakeToJostle() {
-    liftMotor.set(.1);
+    liftMotor.set(-0.1);
   }
   public void intakeToJostle() {
-    intakeMotor.set(0.2);
+    intakeMotor.set(-0.2);
     
-  }
+  } 
   public void lowerIntakeManually() {
     liftMotor.set(-.1);
   }
 
   public void intakeBackward() {
-    intakeMotor.set(intakeSpeed * -1);
+    intakeMotor.set((intakeSpeed * powerLimit));
   }
 
   public void stopLift() {
@@ -193,9 +198,24 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putBoolean("Intake/isUp", isIntakeUp());
 
     SmartDashboard.putNumber("Intake/liftApplied", liftMotor.getAppliedOutput());
-  }
 
-  public Command intakeFuel() {
+    reportPowerUsage(getName(), getTotalVoltage(), getTotalCurrent());
+          }
+        
+          private double getTotalCurrent() {
+        return liftMotor.getOutputCurrent()
+        + intakeMotor.getOutputCurrent();
+      }
+    
+          private double getTotalVoltage() {
+        double total = 0;
+        total += liftMotor.getAppliedOutput() * liftMotor.getBusVoltage();
+        total += intakeMotor.getAppliedOutput() * liftMotor.getBusVoltage();
+
+        return total/2;
+      }
+    
+      public Command intakeFuel() {
     return Commands.startEnd(() -> intakeForward(), () -> stopIntake(), this);
   }
 
@@ -209,5 +229,15 @@ public class Intake extends SubsystemBase {
 
   public Command putUpIntake() {
     return Commands.sequence(Commands.startEnd(() -> raiseIntake(), () -> stopLift(), this).until(() -> isIntakeUp()));
+  }
+
+  @Override
+  protected Command systemCheckCommand() {
+    throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
+  }
+
+  @Override
+  public void setPowerLimit(double limit) {
+    this.powerLimit = limit;
   }
 }
