@@ -15,10 +15,12 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
+import edu.wpi.first.math.geometry.Rotation2d;
 
 /** Add your docs here. */
 public class DriveModes {
@@ -31,22 +33,22 @@ public class DriveModes {
     private final FireControl fireControl;
     private final PIDController pidController;
     private final SlewRateLimiter angularVelLimiter;
-    private final DoubleSupplier angularTestSupplier;
+    private Rotation2d testingTarget;
 
     private Modes currentMode = Modes.NORMAL_JOYSTICK;
 
     public DriveModes(CommandXboxController joystick, CommandSwerveDrivetrain swerve, FireControl fireControl,
             double maxSpeed,
-            double maxAngularRate, DoubleSupplier angularTestSupplier) {
+            double maxAngularRate) {
         drive = new SwerveRequest.FieldCentric()
                 .withDeadband(maxSpeed * 0.1).withRotationalDeadband(maxAngularRate * 0.1)
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
         controller = joystick;
         drivetrain = swerve;
         this.fireControl = fireControl;
-        this.angularTestSupplier = angularTestSupplier;
         speed = maxSpeed;
         angularRate = maxAngularRate;
+        testingTarget = Rotation2d.fromDegrees(0.0);
         pidController = new PIDController(Constants.Joystick.kP, Constants.Joystick.kI, Constants.Joystick.kD);
         this.angularVelLimiter = new SlewRateLimiter(angularRate);
     }
@@ -56,8 +58,7 @@ public class DriveModes {
                 || Constants.BLUE_ALLIANCE_BUMP.contains(drivetrain.getState().Pose.getTranslation())) {
             currentMode = Modes.BUMP;
             return true;
-        } else
-            currentMode = Modes.NORMAL_JOYSTICK;
+        }
         return false;
     }
 
@@ -75,16 +76,16 @@ public class DriveModes {
                 switch (newMode) {
                     case SHOOTING_ANGLE:
                         currentMode = Modes.BUMP;
-                    break;
-                default:
-                    currentMode = newMode;
+                        break;
+                    default:
+                        currentMode = newMode;
                 }
-        break;
-            case SHOOTING_ANGLE:
-            case NORMAL_JOYSTICK:
+                break;
+            default:
                 currentMode = newMode;
-            break;
-            }
+                break;
+
+        }
     }
 
     public SwerveRequest getDriveRequest() {
@@ -93,11 +94,10 @@ public class DriveModes {
         double yVelocity = 0.0;
         double angularVelocity = 0.0;
 
-        xVelocity = -controller.getLeftY() * speed; //based on joystick
+        xVelocity = -controller.getLeftY() * speed; // based on joystick
         yVelocity = -controller.getLeftX() * speed;
 
-        atBump();
-
+        SmartDashboard.putString("DriveModes/mode", currentMode.name());
         switch (currentMode) {
             case BUMP:
                 double target45Deg = Math.round(currentAngleDeg / 45.0) * 45.0;
@@ -110,10 +110,8 @@ public class DriveModes {
 
                 break;
             case TESTING:
-                double targetJoystickAngle = -angularTestSupplier.getAsDouble() * RotationsPerSecond.of(0.25).in(RadiansPerSecond);
-                angularVelocity = angularVelocityCalc(currentAngleDeg, targetJoystickAngle);
-
-                break;
+                // angularVelocity = angularVelocityCalc(currentAngleDeg, testingTarget.getDegrees());
+                // break;
             default:
                 angularVelocity = -controller.getRightX() * angularRate;
 
@@ -124,6 +122,9 @@ public class DriveModes {
                 .withRotationalRate(angularVelocity);
     }
 
+    public void setTestingTargetOffset(double incrementDeg) {
+        testingTarget = drivetrain.getState().Pose.getRotation().plus(Rotation2d.fromDegrees(incrementDeg));
+    }
     public enum Modes {
         NORMAL_JOYSTICK,
         BUMP,

@@ -6,22 +6,26 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.lib.input.controllers.XboxControllerWrapper;
 import frc.robot.subsystems.Shooter;
 
 public class ShooterSpeedAdjustment extends Command {
   private final Shooter shooter;
+  private final XboxControllerWrapper joystick;
   private double targetRPM;
   private String baseKey;
+  private boolean done;
 
-  public ShooterSpeedAdjustment(Shooter shooter) {
+  public ShooterSpeedAdjustment(Shooter shooter, XboxControllerWrapper controller) {
     this.shooter = shooter;
+    joystick = controller;
     addRequirements(shooter);
   }
 
   @Override
   public void initialize() {
     baseKey = shooter.getName();
-
+    done = false;
     targetRPM = 100;
     shooter.setShooterRPM(targetRPM, targetRPM);
 
@@ -42,8 +46,11 @@ public class ShooterSpeedAdjustment extends Command {
     SmartDashboard.putNumber(baseKey + "/Target", targetRPM);
   }
 
+  public void cancelShooterAdjust() {
+    done = true;
+  }
   @Override
   public boolean isFinished() {
-    return false;
+    return done;
   }
 }

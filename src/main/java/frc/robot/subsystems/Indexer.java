@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -52,12 +53,12 @@ public class Indexer extends AdvancedSubsystem {
         Constants.Indexer.INDEXER_kA);
     indexerMotorConfig.closedLoop.pid(Constants.Indexer.INDEXER_P, Constants.Indexer.INDEXER_I,
         Constants.Indexer.INDEXER_D);
-    indexerMotorConfig.closedLoopRampRate(Constants.Indexer.RAMP_RATE);
     indexerMotorConfig
-        .idleMode(IdleMode.kBrake)
+        .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(Constants.Indexer.CURRENT_LIMIT)
         .voltageCompensation(Constants.Indexer.VOLTAGE_LIMIT)
-        .inverted(true);
+        .inverted(true)
+        .closedLoopRampRate(Constants.Indexer.INDEXER_RAMP_RATE);
     indexerMotor.configure(indexerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     flexSim = new SparkFlexSim(indexerMotor, DCMotor.getNeoVortex(1));
 
@@ -72,7 +73,8 @@ public class Indexer extends AdvancedSubsystem {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(Constants.Indexer.CURRENT_LIMIT)
         .voltageCompensation(Constants.Indexer.VOLTAGE_LIMIT)
-        .inverted(true);
+        .inverted(true)
+        .closedLoopRampRate(Constants.Indexer.AGITATOR_RAMP_RATE);
     agitatorMotor.configure(agitatorMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
@@ -92,17 +94,13 @@ public class Indexer extends AdvancedSubsystem {
   }
 
   public void indexerForward() {
-    indexerMotor.set(Constants.Indexer.SPEED);
-    agitatorMotor.set(Constants.Indexer.SPEED);
-    // indexerMotorController.setSetpoint(4000, ControlType.kVelocity);
-    // agitatorMotorController.setSetpoint(4000, ControlType.kVelocity);
+    indexerMotorController.setSetpoint(2000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(2000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
-    indexerMotor.set(Constants.Indexer.SPEED * -1);
-    agitatorMotor.set(Constants.Indexer.SPEED * -1);
-    // indexerMotorController.setSetpoint(-4000, ControlType.kVelocity);
-    // agitatorMotorController.setSetpoint(-4000, ControlType.kVelocity);
+    indexerMotorController.setSetpoint(-2000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(-2000, ControlType.kVelocity);
   }
 
   public void stopIndexer() {

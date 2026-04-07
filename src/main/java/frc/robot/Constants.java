@@ -249,7 +249,8 @@ public final class Constants {
     public static final double INDEXER_I = 0.000001;
     public static final double INDEXER_D = 0.00001;
     
-    public static final double RAMP_RATE = 0.5;
+    public static final double AGITATOR_RAMP_RATE = 0.5;
+    public static final double INDEXER_RAMP_RATE = 1.0;
   }
 
   public static final class Swerve {

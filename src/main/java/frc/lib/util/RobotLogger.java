@@ -21,7 +21,6 @@ public class RobotLogger {
         this.turret = turret;
         this.fireControl = fireControl;
         this.swerve = swerve;
-        DataLogManager.start();
     }
 
    

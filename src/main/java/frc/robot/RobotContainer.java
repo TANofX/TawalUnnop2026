@@ -110,8 +110,7 @@ public class RobotContainer {
       () -> DriverStation.getAlliance().orElse(Alliance.Blue),
       () -> new ChassisSpeeds());
       
-  private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate, () -> logController.getRightX());
-  
+  private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate);
   public static final PowerManagement powerManagement = new PowerManagement(false);
   private final SendableChooser<Command> autoChooser;
   public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl, drivetrain);
@@ -152,7 +151,7 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
-    ShooterSpeedAdjustment shooterAdjust = new ShooterSpeedAdjustment(shooter);
+    ShooterSpeedAdjustment shooterAdjust = new ShooterSpeedAdjustment(shooter, logController);
     coDriver.START();
     indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
     turret.setDefaultCommand(
@@ -187,16 +186,20 @@ public class RobotContainer {
     coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
     coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
     
-    logController.DRight().onTrue(
+    logController.DUp().onTrue(
     Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
     );
 
-    logController.DLeft().onTrue(
+
+    logController.DDown().onTrue(
         Commands.runOnce(() -> shooterAdjust.adjustRPM(-shooterAdjust.getIncrement()))
     );
-    logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
-    logController.B().toggleOnTrue(Commands.startEnd(() -> driveMode.setMode(Modes.TESTING), () -> driveMode.setMode(Modes.NORMAL_JOYSTICK), drivetrain));
 
+    logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
+    logController.B().onTrue(Commands.sequence(Commands.runOnce(() -> driveMode.setMode(Modes.TESTING)), shooterAdjust));
+    logController.Y().onTrue(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust()), Commands.runOnce(() -> driveMode.setMode(Modes.NORMAL_JOYSTICK))));
+    logController.DLeft().onTrue(Commands.runOnce(() -> driveMode.setTestingTargetOffset(-10.0), vision));
+    logController.DRight().onTrue(Commands.runOnce(() -> driveMode.setTestingTargetOffset(10.0), vision));
     
     drivetrain.registerTelemetry(logger::telemeterize);
   }

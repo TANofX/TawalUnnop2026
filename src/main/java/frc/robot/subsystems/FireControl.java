@@ -160,7 +160,8 @@ public class FireControl extends SubsystemBase {
     public void periodic() {
         Pose2d turretPose2d = robotSupplier.get();
         target = getClosestTarget(turretPose2d);
-        currentTarget = getTargetRotation(turretPose2d, target);
+        currentTarget = Rotation2d.fromDegrees(180.0);
+        // getTargetRotation(turretPose2d, target);
         robotTarget = getAngleToTarget(turretPose2d, target);
         distanceFromTarget = getDistance(target, turretPose2d);
 
