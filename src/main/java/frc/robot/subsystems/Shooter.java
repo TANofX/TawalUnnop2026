@@ -64,11 +64,11 @@ public class Shooter extends AdvancedSubsystem {
       final int BOTTOM_LEFT_SHOOTER_ID,
       final int TOP_RIGHT_SHOOTER_ID,
       final int BOTTOM_RIGHT_SHOOTER_ID,
-      final int TIPPY_TOP_SHOOTER_ID) {
+      final int BITTY_BOTTOM_SHOOTER_ID) {
     this(TOP_LEFT_SHOOTER_ID, BOTTOM_LEFT_SHOOTER_ID, TOP_RIGHT_SHOOTER_ID, BOTTOM_RIGHT_SHOOTER_ID);
 
     // CREATE EXTRA MOTOR
-    shooterBittyBottomMotor = new SparkFlex(TIPPY_TOP_SHOOTER_ID, MotorType.kBrushless);
+    shooterBittyBottomMotor = new SparkFlex(BITTY_BOTTOM_SHOOTER_ID, MotorType.kBrushless);
 
     // OBTAIN ENCODER
     shooterBittyBottomEncoder = shooterBittyBottomMotor.getEncoder();
