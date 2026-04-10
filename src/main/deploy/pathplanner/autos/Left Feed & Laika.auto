@@ -114,6 +114,6 @@
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "Left Start",
   "choreoAuto": false
 }

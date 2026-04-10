@@ -107,6 +107,6 @@
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "Middle Start",
   "choreoAuto": false
 }

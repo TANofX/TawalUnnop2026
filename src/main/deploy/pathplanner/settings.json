@@ -6,7 +6,9 @@
     "New Folder"
   ],
   "autoFolders": [
-    "New Folder"
+    "Left Start",
+    "Middle Start",
+    "Right Start"
   ],
   "defaultMaxVel": 2.0,
   "defaultMaxAccel": 3.0,

@@ -213,8 +213,8 @@ public class RobotContainer {
   private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
-          double targetRPM = 3000; // test value
-          shooter.setShooterRPM(targetRPM, targetRPM);
+          double rpm = 3000; // test value
+          shooter.setShooterRPM(rpm);
         }, shooter).finallyDo(() -> shooter.stopShooterMotors());
 }
 

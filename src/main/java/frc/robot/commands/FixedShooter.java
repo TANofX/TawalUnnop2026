@@ -29,7 +29,7 @@ public class FixedShooter extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    theShooter.setShooterRPM(theTargetRPM.getAsDouble(), theTargetRPM.getAsDouble());
+    theShooter.setShooterRPM(theTargetRPM.getAsDouble());
     theTurret.pointToTarget(theTurretAngle.get());
   }
 

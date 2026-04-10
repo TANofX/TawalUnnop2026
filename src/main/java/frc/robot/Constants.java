@@ -298,27 +298,35 @@ public final class Constants {
     public static final double TOP_TARGET_SHOOTER_RPM = 0.0;
     public static final double TOP_SHOOTER_FF = 0.0;
 
-    public static final double TOP_SHOOTER_P = 0.0002;
-    public static final double TOP_SHOOTER_I = 0.0000015;
-    public static final double TOP_SHOOTER_D = 0.0001;
+    public static final double TOP_LEFT_SHOOTER_P = 0.000;
+    public static final double TOP_LEFT_SHOOTER_I = 0.00000;
+    public static final double TOP_LEFT_SHOOTER_D = 0.000;
+
+    public static final double TOP_RIGHT_SHOOTER_P = 0.000;
+    public static final double TOP_RIGHT_SHOOTER_I = 0.00000;
+    public static final double TOP_RIGHT_SHOOTER_D = 0.000;
 
     // bottom motor controlling stuff
     public static final double BOTTOM_TARGET_SHOOTER_RPM = 0.0;
     public static final double BOTTOM_SHOOTER_FF = 0.0;
 
-    public static final double BOTTOM_SHOOTER_P = 0.0002;
-    public static final double BOTTOM_SHOOTER_I = 0.000001;
-    public static final double BOTTOM_SHOOTER_D = 0.0003;
+    public static final double BOTTOM_SHOOTER_P = 0.0000;
+    public static final double BOTTOM_SHOOTER_I = 0.000000;
+    public static final double BOTTOM_SHOOTER_D = 0.0000;
 
-    public static final double TOP_kV = 0.002199;
-    public static final double TOP_kA = 0.0022147;
-    public static final double TOP_kS = 0.97509;
+    public static final double TOP_LEFT_kV = 0.12886;
+    public static final double TOP_LEFT_kA = 0.029469;
+    public static final double TOP_LEFT_kS = 0.080778;
+
+    public static final double TOP_RIGHT_kV = 0.1274;
+    public static final double TOP_RIGHT_kA = 0.028574;
+    public static final double TOP_RIGHT_kS = 0.056734;
 
     public static final double BOTTOM_kV = 0.001;
     public static final double BOTTOM_kA = 0.00021225;
     public static final double BOTTOM_kS = 0.25114;
 
-    public static final double RAMP_RATE = 0.5;
+    public static final double RAMP_RATE = 1.0;
 
     public static final double BITTY_kV = 0.0018718;
     public static final double BITTY_kA = 0.00015177;
@@ -329,8 +337,8 @@ public final class Constants {
     public static final double BITTY_BOTTOM_D = 0.0005;
     
     public static final double shooterMotorTolerance = 100.0;
-    public static final int SHOOTER_CURRENT_STALL_LIMIT = 100;
-    public static final int SHOOTER_CURRENT_FREE_LIMIT = 50;
+    public static final int SHOOTER_CURRENT_STALL_LIMIT = 39;
+    public static final int SHOOTER_CURRENT_FREE_LIMIT = 39;
     public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;
   }
 
