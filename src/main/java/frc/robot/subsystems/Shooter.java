@@ -228,10 +228,10 @@ public double getBottomSetpoint() {
 
   public void setShooter(double speed) {
     shooterLeftTopMotor.set(speed);
+    shooterRightTopMotor.set(speed);
   
 
     if (shooterBittyBottomMotor != null) {
-    
     }
   }
 
@@ -242,7 +242,7 @@ public double getBottomSetpoint() {
 
   public void stopShooterMotors() {
     shooterLeftTopMotor.stopMotor();
-    shooterLeftBottomMotor.stopMotor();
+    shooterRightTopMotor.stopMotor();
     topTargetRPM = bottomTargetRPM = 0;
 
     if (shooterBittyBottomMotor != null) {
@@ -255,7 +255,7 @@ private boolean hasTarget(){
 
   public boolean runIndexer(){
         // return hasTarget() && (topMotorsAtSpeed());
-    return hasTarget() && (topMotorsAtSpeed() && bottomMotorsAtSpeed());
+    return hasTarget();// && (topMotorsAtSpeed() && bottomMotorsAtSpeed());
   }
 
   // Starting shooter commands!!
