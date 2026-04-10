@@ -26,7 +26,7 @@ public class RobotLogger {
    
     public void logSnapshot() {
         double topRPM = shooter.getTopSetpoint();
-        double bottomRPM = shooter.getBottomSetpoint();
+        //double bottomRPM = shooter.getBottomSetpoint();
         double turretAngle = turret.getAngle().getDegrees();
         double distance = fireControl.getDistanceFromTarget();
         double time = Timer.getFPGATimestamp();
@@ -39,7 +39,7 @@ public class RobotLogger {
          double robotRotation = pose.getRotation().getDegrees();
 
        
-        String line = time +"," + topRPM + "," + bottomRPM + "," + turretAngle + "," + distance + "," + robotX + "," + robotY + "," + robotRotation;
+        String line = time +"," + topRPM + "," + turretAngle + "," + distance + "," + robotX + "," + robotY + "," + robotRotation;
         DataLogManager.log("SCORE" + line);
     }
 }

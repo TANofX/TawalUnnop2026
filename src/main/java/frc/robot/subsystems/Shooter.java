@@ -40,7 +40,7 @@ public class Shooter extends AdvancedSubsystem {
   private RelativeEncoder shooterBittyBottomEncoder;
 
 private final SparkClosedLoopController shooterLeftController;  // leftTop leader
-private final SparkClosedLoopController shooterRightController; // rightTop leader
+//private final SparkClosedLoopController shooterRightController; // rightTop leader
   private SparkClosedLoopController shooterBittyBottomController;
   private boolean hardwareFollowConfigured = false;
   private double topTargetRPM = 0.0;
@@ -79,7 +79,7 @@ private final SparkClosedLoopController shooterRightController; // rightTop lead
     shooterBittyBottomConfig
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
+        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
         .inverted(false);
 
     shooterBittyBottomConfig.closedLoop.feedForward
@@ -130,7 +130,7 @@ shooterLeftConfig.closedLoop.feedForward
     .kV(Constants.Shooter.TOP_LEFT_kV)
     .kA(Constants.Shooter.TOP_LEFT_kA);
 
-shooterRightController = shooterRightTopMotor.getClosedLoopController();
+//shooterRightController = shooterRightTopMotor.getClosedLoopController();
 SparkFlexConfig shooterRightConfig = new SparkFlexConfig();
 shooterRightConfig.closedLoop.feedForward
     .kS(Constants.Shooter.TOP_RIGHT_kS)
@@ -164,21 +164,21 @@ try {
     SparkFlexConfig leftBottomConfig = new SparkFlexConfig();
     leftBottomConfig
         .idleMode(IdleMode.kCoast)
-        .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
+        //.smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
+        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
         .follow(shooterLeftTopMotor, false); // same direction as left leader
 
     shooterRightConfig
         .idleMode(IdleMode.kCoast)
-        .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
-        .inverted(true); // RIGHT LEADER (negative)
+        //.smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
+        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
+        .inverted(true);//.follow(shooterLeftTopMotor, true); // RIGHT LEADER (negative)
 
     SparkFlexConfig rightBottomConfig = new SparkFlexConfig();
     rightBottomConfig
         .idleMode(IdleMode.kCoast)
-        .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
+        //.smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
+        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
         .follow(shooterRightTopMotor, false); // same direction as right leader
 
     shooterLeftBottomMotor.configure(leftBottomConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -219,12 +219,12 @@ public boolean bottomMotorsAtSpeed() {
 public void setShooterRPM(double rpm) {
     topTargetRPM = rpm;
     shooterLeftController.setSetpoint(rpm, ControlType.kVelocity);
-    shooterRightController.setSetpoint(rpm, ControlType.kVelocity); // inverted hardware handles direction
+    //shooterRightController.setSetpoint(rpm, ControlType.kVelocity); // inverted hardware handles direction
 }
 
-public double getBottomSetpoint() {
-    return shooterRightController.getSetpoint();
-}
+// public double getBottomSetpoint() {
+//     return shooterRightController.getSetpoint();
+// }
 
   public void setShooter(double speed) {
     shooterLeftTopMotor.set(speed);
@@ -236,13 +236,13 @@ public double getBottomSetpoint() {
   }
 
   public double getTopSetpoint() {
-    return shooterRightController.getSetpoint();
+    return shooterLeftController.getSetpoint();
   }
 
 
   public void stopShooterMotors() {
     shooterLeftTopMotor.stopMotor();
-    shooterRightTopMotor.stopMotor();
+    //shooterRightTopMotor.stopMotor();
     topTargetRPM = bottomTargetRPM = 0;
 
     if (shooterBittyBottomMotor != null) {
@@ -302,7 +302,7 @@ public double getBottomCurrentDraw() {
   public Command reverseShooter(double RPM) {
     return Commands.runOnce(() -> {
         shooterLeftController.setSetpoint(-RPM, ControlType.kVelocity);
-        shooterRightController.setSetpoint(-RPM, ControlType.kVelocity);
+        //shooterRightController.setSetpoint(-RPM, ControlType.kVelocity);
     }, this);
 }
 
@@ -329,6 +329,8 @@ public double getBottomCurrentDraw() {
 
   @Override
   public void periodic() {
+    shooterRightTopMotor.set(shooterLeftTopMotor.getAppliedOutput());
+
     double topRPM = shooterLeftTopEncoder.getVelocity();
     double bottomRPM = shooterLeftBottomEncoder.getVelocity();
     double currentTime = System.currentTimeMillis();
@@ -348,20 +350,20 @@ public double getBottomCurrentDraw() {
       }
     }
 
-    // bottom recovery
-    if (Math.abs(bottomRPM - getBottomSetpoint()) > Constants.Shooter.shooterMotorTolerance) {
-      if (bottomInTolerance) { // just dropped below
-        bottomInTolerance = false;
-        bottomRecoveryStart = (long) currentTime;
-      }
-    } else { // back within tolerance
-      if (!bottomInTolerance) {
-        bottomInTolerance = true;
-        double recoveryTime = currentTime - bottomRecoveryStart; // in ms
-        bottomRecoveryTimes.add((long) recoveryTime);
-        SmartDashboard.putNumber("Bottom Shooter Recovery Time (ms)", recoveryTime);
-      }
-    }
+    // // bottom recovery
+    // if (Math.abs(bottomRPM - getBottomSetpoint()) > Constants.Shooter.shooterMotorTolerance) {
+    //   if (bottomInTolerance) { // just dropped below
+    //     bottomInTolerance = false;
+    //     bottomRecoveryStart = (long) currentTime;
+    //   }
+    // } else { // back within tolerance
+    //   if (!bottomInTolerance) {
+    //     bottomInTolerance = true;
+    //     double recoveryTime = currentTime - bottomRecoveryStart; // in ms
+    //     bottomRecoveryTimes.add((long) recoveryTime);
+    //     SmartDashboard.putNumber("Bottom Shooter Recovery Time (ms)", recoveryTime);
+    //   }
+    // }
     SmartDashboard.putNumber("Shooter/Top Volts",
         shooterLeftTopMotor.getAppliedOutput() * shooterLeftTopMotor.getBusVoltage());
 
