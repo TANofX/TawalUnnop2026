@@ -146,7 +146,7 @@ public final class Constants {
     public static final int CURRENT = 50;
     public static final double TURRET_GEAR_RATIO_IO = 20 * 200 / 28;
 
-    public static final Rotation2d NO_TURRET_ANGLE = Rotation2d.fromDegrees(180); //TODO
+    public static final Rotation2d NO_TURRET_ANGLE = Rotation2d.fromDegrees(180);
 
     public static final double TURRET_kV = 0.0010522;
     public static final double TURRET_kA = 0.00010721;
@@ -211,10 +211,10 @@ public final class Constants {
     public static final int INTAKE_LIFT_MOTOR_ID = 21;
     @CanId(CanId.Type.MOTOR)
     public static final int INTAKE_MOTOR_ID = 20;
-    public static final double INTAKE_LIFT_SPEED = 0.15;
+    public static final double INTAKE_LIFT_SPEED = 0.2;
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
-    public static final double INTAKE_SPEED = 0.75;
+    public static final double INTAKE_SPEED = 0.85;
     public static final double LIFT_JKMETERS_SQUARED = 0.00006;
     public static final double LIFT_MOTOR_GEARING = 1.0 / 100.0;
     public static final double INTAKE_REACH_METERS = 0.30;
@@ -262,11 +262,6 @@ public final class Constants {
     public static final double TELEOP_MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(540);
     public static final double TELEOP_ANGLE_HOLD_FACTOR = 3.0;
 
-    public static final class Odometry {
-      public static final Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.02, 0.02, 0.01); // TODO change state StdDev for Odom
-      public static final Matrix<N3, N1> visionStdDevs = VecBuilder.fill(0.5, 0.5, 999999.0); // TODO change vision StdDev for Odom
-    }
-
     public static final class PathFollowing {
       public static final PIDConstants TRANSLATION_CONSTANTS = new PIDConstants(4.0, 0.0, 0.0);
       public static final PIDConstants ROTATION_CONSTANTS = new PIDConstants(8.0, 0.0, 0.8);
@@ -294,7 +289,7 @@ public final class Constants {
     @CanId(CanId.Type.MOTOR)
     public static final int BITTY_SHOOTER_ID = 34;
 
-    public static final double TOP_LEFT_SHOOTER_P = 0.000125;
+    public static final double TOP_LEFT_SHOOTER_P = 0.00065;
     public static final double TOP_LEFT_SHOOTER_I = 0.0;
     public static final double TOP_LEFT_SHOOTER_D = 0.0;
 
@@ -322,7 +317,7 @@ public final class Constants {
     public static final double BITTY_BOTTOM_I = 0.000001;
     public static final double BITTY_BOTTOM_D = 0.0005;
     
-    public static final double shooterMotorTolerance = 100.0;
+    public static final double shooterMotorTolerance = 50.0;
     public static final int SHOOTER_CURRENT_STALL_LIMIT = 25;
     public static final int SHOOTER_CURRENT_FREE_LIMIT = 80;
     public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;

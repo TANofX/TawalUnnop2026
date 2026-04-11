@@ -26,7 +26,7 @@ public class ShooterSpeedAdjustment extends Command {
   public void initialize() {
     baseKey = shooter.getName();
     done = false;
-    targetRPM = 100;
+    targetRPM = 2000;
     shooter.setShooterRPM(targetRPM);
 
     SmartDashboard.putNumber(baseKey + "/Target", targetRPM);
@@ -52,5 +52,14 @@ public class ShooterSpeedAdjustment extends Command {
   @Override
   public boolean isFinished() {
     return done;
+  }
+
+  @Override
+  public void end(boolean interuppted) {
+    shooter.stopShooterMotors();
+  }
+  @Override
+  public void execute() {
+    SmartDashboard.putBoolean("adjust Done", done);
   }
 }

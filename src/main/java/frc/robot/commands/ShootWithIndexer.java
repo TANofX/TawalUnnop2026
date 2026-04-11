@@ -4,6 +4,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
@@ -14,12 +15,11 @@ import frc.robot.subsystems.Turret;
 public class ShootWithIndexer extends Command {
   private Shooter shooter;
   private Indexer indexer;
-  private Turret turret;
 
-  public ShootWithIndexer(Shooter shooter, Indexer indexer, Turret turret) {
+  public ShootWithIndexer(Shooter shooter, Indexer indexer) {
     this.shooter = shooter;
     this.indexer = indexer;
-    this.turret = turret;
+    // this.turret = turret;
     addRequirements(this.indexer);
   }
 
@@ -32,14 +32,15 @@ public class ShootWithIndexer extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (shooter.runIndexer() && turret.isAtTarget()) {
-      indexer.indexerForward();
-      SmartDashboard.putString("Indexer Default Command", "forward");
-    } else {
-      indexer.stopIndexer();
-      SmartDashboard.putString("Indexer Default Command", "stops");
-    }
-  }
+      if (shooter.runIndexer()) {
+          indexer.indexerForward();
+          SmartDashboard.putString("Indexer Default Command", "forward");
+        }
+        else {
+          indexer.stopIndexer();
+          SmartDashboard.putString("Indexer Default Command", "stop");
+        }
+      }
 
   // Called once the command ends or is interrupted.
   @Override

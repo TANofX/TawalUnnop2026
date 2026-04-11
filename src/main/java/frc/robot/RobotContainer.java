@@ -74,17 +74,15 @@ public class RobotContainer {
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
   private final CommandXboxController joystick = new CommandXboxController(0);
-  private final CommandXboxController shooterJoystick = new CommandXboxController(2);
-
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public static final PowerDistribution powerDistribution = new PowerDistribution();
   public static final Supplier<Pose2d> robotPose = () -> drivetrain.getState().Pose;
   public static final Vision vision = new Vision(
       (visionPose, timestamp, stdDevs) -> {
-        drivetrain.addVisionMeasurement(
-            visionPose,
-            timestamp,
-            VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
+        // drivetrain.addVisionMeasurement(
+        //     visionPose,
+        //     timestamp,
+        //     VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
       }, robotPose);
 
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
@@ -92,15 +90,15 @@ public class RobotContainer {
 
   public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID, Constants.Indexer.AGITATOR_MOTOR_ID);
 
-  public static final Turret turret = new Turret("Turret", Constants.Turret.TURRET_MOTOR_ID,
-      Constants.Turret.Turret_HALL_EFFECT_ID, null); // TODO obtain transform from robot to turret
+  // public static final Turret turret = new Turret("Turret", Constants.Turret.TURRET_MOTOR_ID,
+  //     Constants.Turret.Turret_HALL_EFFECT_ID, null); // TODO obtain transform from robot to turret
 
   public static final Shooter shooter = new Shooter(
       Constants.Shooter.TOP_LEFT_SHOOTER_ID,
       Constants.Shooter.BOTTOM_LEFT_SHOOTER_ID,
       Constants.Shooter.TOP_RIGHT_SHOOTER_ID,
-      Constants.Shooter.BOTTOM_RIGHT_SHOOTER_ID,
-      Constants.Shooter.BITTY_SHOOTER_ID);
+      Constants.Shooter.BOTTOM_RIGHT_SHOOTER_ID);
+      // Constants.Shooter.BITTY_SHOOTER_ID);
 
   public static final FireControl fireControl = new FireControl(
       () -> {
@@ -114,7 +112,7 @@ public class RobotContainer {
   private final DriveModes driveMode = new DriveModes(joystick, drivetrain, fireControl, MaxSpeed, MaxAngularRate);
   public static final PowerManagement powerManagement = new PowerManagement(false);
   private final SendableChooser<Command> autoChooser;
-  public static final RobotLogger robotLogger = new RobotLogger(shooter, turret, fireControl, drivetrain);
+  public static final RobotLogger robotLogger = new RobotLogger(shooter, fireControl, drivetrain);
   // private SendableChooser<Command> autoChooser() {
   // chooser = new SendableChooser<>();
   // chooser.addOption("rightTrench", rightTrenchAutoCommand());
@@ -126,24 +124,23 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureButtonBindings();
+    // Register Named PathPlanner Commands
+    NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
+    NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
     
     powerManagement.addSubsystem(shooter);
     powerManagement.addSubsystem(indexer);
     powerManagement.addSubsystem(intake);
-    powerManagement.addSubsystem(turret);
-
-  // Register Named PathPlanner Commands
-    NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
-    NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-
+    // powerManagement.addSubsystem(turret);
 
     SmartDashboard.putData("Reset Position", Commands.runOnce(() -> {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    vision.addCamera("heart", Constants.Vision.robotToHeart);
+    // vision.addCamera("heart", Constants.Vision.robotToHeart);
     // vision.addCamera("club", Constants.Vision.robotToClub);
     // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
@@ -154,16 +151,16 @@ public class RobotContainer {
   private void configureButtonBindings() {
     ShooterSpeedAdjustment shooterAdjust = new ShooterSpeedAdjustment(shooter, logController);
     coDriver.START();
-    indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer, turret));
-    turret.setDefaultCommand(
-        Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret,fireControl)));
+    indexer.setDefaultCommand(new ShootWithIndexer(shooter, indexer));
+    // turret.setDefaultCommand(
+    //     Commands.sequence(new CalibrateTurret(turret), new DefaultTurretCommand(turret,fireControl)));
     driveMode.setMode(Modes.NORMAL_JOYSTICK);
     drivetrain.setDefaultCommand(
         drivetrain.applyRequest(() -> driveMode.getDriveRequest()
         ));
     
-    SmartDashboard.putData(new ZeroTurret(turret));
-    SmartDashboard.putData(new CalibrateTurret(turret));
+    // SmartDashboard.putData(new ZeroTurret(turret));
+    // SmartDashboard.putData(new CalibrateTurret(turret));
 
     // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
@@ -173,6 +170,7 @@ public class RobotContainer {
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     driver.RT().whileTrue(shootTestFuelCommand());
+    driver.LB().whileTrue(intakePushFuel());
     driver.Y().whileTrue(intake.putUpIntake());
     driver.A().whileTrue(indexer.shootFuel());
     coDriver.DUp().whileTrue(intakePushFuel());
@@ -180,7 +178,7 @@ public class RobotContainer {
     coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
     coDriver.RB().whileTrue(Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
     coDriver.RT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-
+    driver.X().onTrue(Commands.runOnce(() -> indexer.stopIndexer(), indexer));
     // Set positions to shoot from if autos fail
     coDriver.A().whileTrue(CreateFixedShooterCommand(() -> rightClimbAngle, () -> rightClimbRPM));
     coDriver.B().whileTrue(CreateFixedShooterCommand(() -> rightTrenchAngle, () -> rightTrenchRPM));
@@ -206,14 +204,14 @@ public class RobotContainer {
   }
 
   private Command CreateFixedShooterCommand(java.util.function.Supplier<Rotation2d> turretAngle, DoubleSupplier targetRPM) {
-    return Commands.sequence(new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
+    return Commands.sequence(
+        new FixedShooter(shooter, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
   }
 
   private Command shootTestFuelCommand() {
     return Commands.run(
         () -> {
-          double rpm = 3000; // test value
+          double rpm = 2750; // test value
           shooter.setShooterRPM(rpm);
         }, shooter).finallyDo(() -> shooter.stopShooterMotors());
 }
@@ -236,39 +234,39 @@ public class RobotContainer {
     });
   }
 
-  public Command leftBumpAutoCommand() {
-    double rpm = 2300;
-    Rotation2d angle = Rotation2d.fromDegrees(180);
+  // public Command leftBumpAutoCommand() {
+  //   double rpm = 2300;
+  //   Rotation2d angle = Rotation2d.fromDegrees(180);
 
-    return Commands.sequence(new BumpPosition("left", drivetrain),
-        new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
-  }
+  //   return Commands.sequence(new BumpPosition("left", drivetrain),
+  //       new CalibrateTurret(turret),
+  //       new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
+  // }
 
-  public Command rightBumpAutoCommand() {
-    double rpm = 2300;
-    Rotation2d angle = Rotation2d.fromDegrees(0);
+  // public Command rightBumpAutoCommand() {
+  //   double rpm = 2300;
+  //   Rotation2d angle = Rotation2d.fromDegrees(0);
 
-    return Commands.sequence(new BumpPosition("right", drivetrain),
-        new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
-  }
+  //   return Commands.sequence(new BumpPosition("right", drivetrain),
+  //       new CalibrateTurret(turret),
+  //       new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
+  // }
 
-  public Command rightTrenchAutoCommand() {
-    double rpm = rightTrenchRPM;
-    Rotation2d angle = rightTrenchAngle;
+  // public Command rightTrenchAutoCommand() {
+  //   double rpm = rightTrenchRPM;
+  //   Rotation2d angle = rightTrenchAngle;
 
-    return Commands.sequence(new TrenchPosition("right", drivetrain), new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
-  }
+  //   return Commands.sequence(new TrenchPosition("right", drivetrain), new CalibrateTurret(turret),
+  //       new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
+  // }
 
-  public Command leftTrenchAutoCommand() {
-    double rpm = leftTrenchRPM;
-    Rotation2d angle = leftTrenchAngle;
+  // public Command leftTrenchAutoCommand() {
+  //   double rpm = leftTrenchRPM;
+  //   Rotation2d angle = leftTrenchAngle;
 
-    return Commands.sequence(new TrenchPosition("left", drivetrain), new CalibrateTurret(turret),
-        new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
-  }
+  //   return Commands.sequence(new TrenchPosition("left", drivetrain), new CalibrateTurret(turret),
+  //       new FixedShooter(shooter, turret, () -> rpm, () -> angle).finallyDo(() -> shooter.stopShooterMotors()));
+  // }
 
   public Command getAutonomousCommand() {
     return autoChooser.getSelected();

@@ -13,6 +13,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
@@ -37,6 +38,7 @@ public final class Vision extends AdvancedSubsystem {
     public void periodic() {
         for (VisionCamera v : cameras) {
             v.estimatePose(robotPose.get().getTranslation());
+            v.withoutTransEstimatePose(robotPose.get().getTranslation());
         }
     }
 
@@ -59,6 +61,7 @@ public final class Vision extends AdvancedSubsystem {
     private class VisionCamera {
         private PhotonCamera cam;
         private PhotonPoseEstimator estimator;
+        private PhotonPoseEstimator withoutTransEstimator;
         private VisionConsumer consumer;
 
         public VisionCamera(String name, Transform3d robotToCam, VisionConsumer consumer) {
@@ -68,7 +71,10 @@ public final class Vision extends AdvancedSubsystem {
                     Constants.apriltagLayout,
                     PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                     robotToCam);
-
+            withoutTransEstimator = new PhotonPoseEstimator(
+                    Constants.apriltagLayout,
+                    PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                    new Transform3d(0,0,0, new Rotation3d()));
         }
 
         public void estimatePose(Translation2d robotPosition) {
@@ -94,6 +100,31 @@ public final class Vision extends AdvancedSubsystem {
                             if (estimatedPose.getTranslation().getDistance(robotPosition) < 1.0) {
                                 consumer.accept(estimatedPose, estimate.timestampSeconds, estStdDevs);
                             }
+                        });
+            }
+            // estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+        }
+
+        public void withoutTransEstimatePose(Translation2d robotPosition) {
+            Optional<EstimatedRobotPose> visionEst = Optional.empty();
+            PhotonCamera camera = cam;
+            PhotonPoseEstimator withoutTransEstimator = this.withoutTransEstimator;
+
+            for (var result : camera.getAllUnreadResults()) {
+                visionEst = withoutTransEstimator.estimateCoprocMultiTagPose(result);
+
+                if (visionEst.isEmpty()) {
+                    visionEst = withoutTransEstimator.estimateLowestAmbiguityPose(result);
+                }
+
+                visionEst.ifPresent(
+                        estimate -> {
+                            // Change our trust in the measurement based on the tags we can see
+                            // var estStdDevs = updateStdDevs(withoutTransEstimator, estimate, result.getTargets());
+                            Pose2d estimatedPose = estimate.estimatedPose.toPose2d();
+                            SmartDashboard.putNumberArray("Vision/" + cam.getName() + "/estimatedPoseWithoutTrans",
+                                    new double[] { estimatedPose.getX(), estimatedPose.getY(),
+                                            estimatedPose.getRotation().getDegrees() });
                         });
             }
             // estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);

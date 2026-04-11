@@ -244,10 +244,6 @@ public void setShooterRPM(double rpm) {
     shooterLeftTopMotor.stopMotor();
     //shooterRightTopMotor.stopMotor();
     topTargetRPM = bottomTargetRPM = 0;
-
-    if (shooterBittyBottomMotor != null) {
-      shooterBittyBottomMotor.stopMotor();
-    }
   }
 private boolean hasTarget(){
   return topTargetRPM > 0;
@@ -255,7 +251,7 @@ private boolean hasTarget(){
 
   public boolean runIndexer(){
         // return hasTarget() && (topMotorsAtSpeed());
-    return hasTarget();// && (topMotorsAtSpeed() && bottomMotorsAtSpeed());
+    return hasTarget() && topMotorsAtSpeed();
   }
 
   // Starting shooter commands!!
@@ -333,6 +329,9 @@ public double getBottomCurrentDraw() {
 
     double topRPM = shooterLeftTopEncoder.getVelocity();
     double bottomRPM = shooterLeftBottomEncoder.getVelocity();
+    double shooterLeftTopRPM = shooterLeftTopEncoder.getVelocity();
+    double shooterRightTopRPM = shooterRightTopEncoder.getVelocity();
+    
     double currentTime = System.currentTimeMillis();
 
     // top recovery
@@ -374,7 +373,9 @@ public double getBottomCurrentDraw() {
     SmartDashboard.putNumber("Shooter/Bottom RPM", bottomRPM);
     SmartDashboard.putNumber("Shooter/Top Applied", shooterRightTopMotor.getAppliedOutput());
     SmartDashboard.putNumber("Shooter/Bottom Applied", shooterRightBottomMotor.getAppliedOutput());
-
+    
+    SmartDashboard.putNumber("Shooter/Top Left RPM", shooterLeftTopRPM);
+    SmartDashboard.putNumber("Shooter/Top Right RPM",  shooterRightTopRPM);
     reportPowerUsage(getName(), getTotalCurrent(), getTotalVoltage());
           }
         

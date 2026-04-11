@@ -11,23 +11,22 @@ import edu.wpi.first.wpilibj.Timer;
 public class RobotLogger {
 
     private final Shooter shooter;
-    private final Turret turret;
     private final FireControl fireControl;
     private final CommandSwerveDrivetrain swerve;
 
 
-    public RobotLogger(Shooter shooter, Turret turret, FireControl fireControl, CommandSwerveDrivetrain swerve) {
+    public RobotLogger(Shooter shooter, FireControl fireControl, CommandSwerveDrivetrain swerve) {
         this.shooter = shooter;
-        this.turret = turret;
         this.fireControl = fireControl;
         this.swerve = swerve;
     }
 
    
     public void logSnapshot() {
-        double topRPM = shooter.getTopSetpoint();
+        double topTargetRPM = shooter.getTopSetpoint();
+        double topRPM = shooter.getTopRPM();
         //double bottomRPM = shooter.getBottomSetpoint();
-        double turretAngle = turret.getAngle().getDegrees();
+        // double turretAngle = turret.getAngle().getDegrees();
         double distance = fireControl.getDistanceFromTarget();
         double time = Timer.getFPGATimestamp();
       
@@ -39,7 +38,7 @@ public class RobotLogger {
          double robotRotation = pose.getRotation().getDegrees();
 
        
-        String line = time +"," + topRPM + "," + turretAngle + "," + distance + "," + robotX + "," + robotY + "," + robotRotation;
+        String line = time +"," + topTargetRPM + "," + topRPM + "," + distance + "," + robotX + "," + robotY + "," + robotRotation;
         DataLogManager.log("SCORE" + line);
     }
 }

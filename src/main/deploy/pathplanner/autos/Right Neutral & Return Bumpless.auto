@@ -5,31 +5,26 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Right Start to Right Neutral"
-          }
-        },
-        {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
               {
-                "type": "path",
+                "type": "sequential",
                 "data": {
-                  "pathName": "Right Neutral 2 to Mid Neutral"
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Right Start to Right Neutral"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Right Neutral 2 to Mid Neutral"
+                      }
+                    }
+                  ]
                 }
               },
               {
