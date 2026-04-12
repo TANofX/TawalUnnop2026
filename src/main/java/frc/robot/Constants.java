@@ -230,6 +230,10 @@ public final class Constants {
     public static final double INTAKE_kV = 0.0018096;
     public static final double INTAKE_kA = 0.0022961;
     public static final double INTAKE_kS = 0.3012;
+    public static final double JOSTLE_TIME_SECONDS = 0.200;
+    public static final double JOSTLE_SLOW_TIME_SECONDS = 0.04;
+    public static final double JAM_CLEARING_TIME_SECONDS = 0.4;
+    public static final double MAX_RPM = 5900.0;
   }
 
   public static final class Indexer {
