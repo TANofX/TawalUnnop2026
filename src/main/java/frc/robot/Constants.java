@@ -289,7 +289,7 @@ public final class Constants {
     @CanId(CanId.Type.MOTOR)
     public static final int BITTY_SHOOTER_ID = 34;
 
-    public static final double TOP_LEFT_SHOOTER_P = 0.00065;
+    public static final double TOP_LEFT_SHOOTER_P = 0.0008;//0.00065;
     public static final double TOP_LEFT_SHOOTER_I = 0.0;
     public static final double TOP_LEFT_SHOOTER_D = 0.0;
 
@@ -298,16 +298,16 @@ public final class Constants {
     public static final double TOP_RIGHT_SHOOTER_D = 0.0;
 
     // public static final double TOP_LEFT_kV = 0.12886;
-    public static final double TOP_LEFT_kV = 0.0019305; //0.0023348;
-    public static final double TOP_LEFT_kA = 0.00062445; //0.00043609;
-    public static final double TOP_LEFT_kS = 0.0; //0.18531;
+    public static final double TOP_LEFT_kV = 0.00200;//0.0019305; //0.0023348;
+    public static final double TOP_LEFT_kA = 0.00039146; //0.00062445; //0.00043609;
+    public static final double TOP_LEFT_kS = 0.22632;//0.0; //0.18531;
 
     // public static final double TOP_RIGHT_kV = 0.1274;
     public static final double TOP_RIGHT_kV = 0.12603/60;
     public static final double TOP_RIGHT_kA = 0.02656/60;
     public static final double TOP_RIGHT_kS = 0.074052;
 
-    public static final double RAMP_RATE = 1.0;
+    public static final double RAMP_RATE = 0.5;
 
     public static final double BITTY_kV = 0.0018718;
     public static final double BITTY_kA = 0.00015177;
@@ -317,7 +317,7 @@ public final class Constants {
     public static final double BITTY_BOTTOM_I = 0.000001;
     public static final double BITTY_BOTTOM_D = 0.0005;
     
-    public static final double shooterMotorTolerance = 50.0;
+    public static final double shooterMotorTolerance = 75.0;
     public static final int SHOOTER_CURRENT_STALL_LIMIT = 25;
     public static final int SHOOTER_CURRENT_FREE_LIMIT = 80;
     public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;

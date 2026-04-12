@@ -125,8 +125,11 @@ public class RobotContainer {
   public RobotContainer() {
     configureButtonBindings();
     // Register Named PathPlanner Commands
-    NamedCommands.registerCommand("Shoot", CreateFixedShooterCommand(() -> fireControl.getCurrentTarget(), () -> fireControl.getShooterRpm()));
+    NamedCommands.registerCommand("Shoot",shootTestFuelCommand());
     NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+    NamedCommands.registerCommand("Intake Push", intakePushFuel());
+    NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
+    NamedCommands.registerCommand("Jostle", manualIntakeDownCommand());
 
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
@@ -229,8 +232,10 @@ public class RobotContainer {
   public Command manualIntakeDownCommand() {
     return intake.run(() -> {
       intake.lowerIntakeManually();
+      intake.intakeToJostle();
     }).finallyDo(() -> {
       intake.stopLift();
+      intake.stopIntake();
     });
   }
 
