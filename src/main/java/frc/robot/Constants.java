@@ -215,6 +215,7 @@ public final class Constants {
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
     public static final double INTAKE_SPEED = 0.85;
+    public static final double INTAKE_RPM = 3000.0;
     public static final double LIFT_JKMETERS_SQUARED = 0.00006;
     public static final double LIFT_MOTOR_GEARING = 1.0 / 100.0;
     public static final double INTAKE_REACH_METERS = 0.30;
@@ -223,13 +224,13 @@ public final class Constants {
     public static final double WHEEL_MOMENT_OF_INERTIA = 0.00006;
     public static final double INTAKE_GEAR_RATIO = 1.0 / 3.0;
 
-    public static final double INTAKE_P = 0.00005;
+    public static final double INTAKE_P = 0.00017748;
     public static final double INTAKE_I = 0.0;
     public static final double INTAKE_D = 0.0;
 
-    public static final double INTAKE_kV = 0.0018096;
-    public static final double INTAKE_kA = 0.0022961;
-    public static final double INTAKE_kS = 0.3012;
+    public static final double INTAKE_kV = 0.0018466;
+    public static final double INTAKE_kA = 0.00018526;
+    public static final double INTAKE_kS = 0.11988;
   }
 
   public static final class Indexer {

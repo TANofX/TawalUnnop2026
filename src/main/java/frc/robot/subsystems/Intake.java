@@ -9,6 +9,7 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.LimitSwitchConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
@@ -156,13 +157,15 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void intakeForward() {
-    intakeMotor.set(intakeSpeed * powerLimit * -1);
+    intakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * powerLimit * -1.0, ControlType.kVelocity);
+    //intakeMotor.set(intakeSpeed * powerLimit * -1);
   }
   public void raiseIntakeToJostle() {
     liftMotor.set(-0.1);
   }
   public void intakeToJostle() {
-    intakeMotor.set(-0.2);
+    intakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * 0.25, ControlType.kVelocity);
+    //intakeMotor.set(-0.2);
     
   } 
   public void lowerIntakeManually() {
@@ -170,7 +173,8 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void intakeBackward() {
-    intakeMotor.set((intakeSpeed * powerLimit));
+    intakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * powerLimit, ControlType.kVelocity);
+    //intakeMotor.set((intakeSpeed * powerLimit));
   }
 
   public void stopLift() {
