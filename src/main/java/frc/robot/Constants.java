@@ -210,7 +210,8 @@ public final class Constants {
     @CanId(CanId.Type.MOTOR)
     public static final int INTAKE_LIFT_MOTOR_ID = 21;
     @CanId(CanId.Type.MOTOR)
-    public static final int INTAKE_MOTOR_ID = 20;
+    public static final int LEFT_INTAKE_MOTOR_ID = 20;
+    public static final int RIGHT_INTAKE_MOTOR_ID = 22;
     public static final double INTAKE_LIFT_SPEED = 0.2;
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
@@ -231,6 +232,8 @@ public final class Constants {
     public static final double INTAKE_kV = 0.0018466;
     public static final double INTAKE_kA = 0.00018526;
     public static final double INTAKE_kS = 0.11988;
+
+    //public static final double JOSTLE_UP_POSITION = 
   }
 
   public static final class Indexer {

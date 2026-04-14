@@ -86,7 +86,7 @@ public class RobotContainer {
       }, robotPose);
 
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
-      Constants.Intake.INTAKE_MOTOR_ID);
+      Constants.Intake.LEFT_INTAKE_MOTOR_ID, Constants.Intake.RIGHT_INTAKE_MOTOR_ID);
 
   public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID, Constants.Indexer.AGITATOR_MOTOR_ID);
 

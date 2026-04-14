@@ -36,17 +36,19 @@ public class Intake extends AdvancedSubsystem {
 
   // assuming these are singletons
   private final SparkFlex liftMotor;
-  private final SparkFlex intakeMotor;
+  private final SparkFlex leftIntakeMotor;
+  private final SparkFlex rightIntakeMotor;
   private final SparkLimitSwitch liftLimitSwitchUp;
   private final SparkLimitSwitch liftLimitSwitchDown;
 
-  private final SparkFlexConfig intakeMotorConfig;
+  private final SparkFlexConfig leftIntakeMotorConfig;
+  private final SparkFlexConfig rightIntakeMotorConfig;
   private final LimitSwitchConfig liftLimitSwitchConfig;
   private final SparkFlexConfig liftMotorConfig;
 
   private final double intakeLiftSpeed;
   private final double intakeSpeed;
-
+  private boolean hardwareFollowConfigured = false;
   private final SparkFlexSim flexSim;
   private final SparkFlexSim intakeMotorSim;
 
@@ -66,11 +68,13 @@ public class Intake extends AdvancedSubsystem {
           Constants.Intake.INTAKE_GEAR_RATIO),
       DCMotor.getNeoVortex(1));
 
-  public Intake(int liftMotorID, int intakeMotorID) {
+  public Intake(int liftMotorID, int leftIntakeMotorID, int rightIntakeMotorID) {
     super("Intake");
     BatteryUsage.registerDevice(getName(), 2);
     liftMotor = new SparkFlex(liftMotorID, MotorType.kBrushless);
-    intakeMotor = new SparkFlex(intakeMotorID, MotorType.kBrushless);
+    leftIntakeMotor = new SparkFlex(leftIntakeMotorID, MotorType.kBrushless);
+    rightIntakeMotor = new SparkFlex(rightIntakeMotorID, MotorType.kBrushless);
+
 
     liftLimitSwitchConfig = new LimitSwitchConfig();
     liftLimitSwitchConfig
@@ -81,16 +85,24 @@ public class Intake extends AdvancedSubsystem {
         .reverseLimitSwitchType(Type.kNormallyOpen)
         .reverseLimitSwitchPosition(0);
 
-    intakeMotorConfig = new SparkFlexConfig();
-    intakeMotorConfig
+    leftIntakeMotorConfig = new SparkFlexConfig();
+    leftIntakeMotorConfig
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
         .inverted(true)
         .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT);
-    intakeMotorConfig.closedLoop.pid(Constants.Intake.INTAKE_P, Constants.Intake.INTAKE_I, Constants.Intake.INTAKE_D);
-    intakeMotorConfig.closedLoop.feedForward.sva(Constants.Intake.INTAKE_kS, Constants.Intake.INTAKE_kV,
+    rightIntakeMotorConfig = new SparkFlexConfig();
+    rightIntakeMotorConfig
+        .idleMode(IdleMode.kCoast)        
+        .inverted(false)
+        .follow(leftIntakeMotor); 
+        
+    leftIntakeMotorConfig.closedLoop.pid(Constants.Intake.INTAKE_P, Constants.Intake.INTAKE_I, Constants.Intake.INTAKE_D);
+    leftIntakeMotorConfig.closedLoop.feedForward.sva(Constants.Intake.INTAKE_kS, Constants.Intake.INTAKE_kV,
         Constants.Intake.INTAKE_kA);
-    intakeMotor.configure(intakeMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    leftIntakeMotor.configure(leftIntakeMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+   
 
     liftMotorConfig = new SparkFlexConfig();
     liftMotorConfig
@@ -99,7 +111,13 @@ public class Intake extends AdvancedSubsystem {
         .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
         .inverted(true)
         .apply(liftLimitSwitchConfig);
+        
+        
     liftMotor.configure(liftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    
+
+  
+   
 
     liftLimitSwitchUp = liftMotor.getReverseLimitSwitch();
     liftLimitSwitchDown = liftMotor.getForwardLimitSwitch();
@@ -107,7 +125,7 @@ public class Intake extends AdvancedSubsystem {
     intakeSpeed = Constants.Intake.INTAKE_SPEED; // Using constant for now
 
     flexSim = new SparkFlexSim(liftMotor, DCMotor.getNeoVortex(1));
-    intakeMotorSim = new SparkFlexSim(intakeMotor, DCMotor.getNeoVortex(1));
+    intakeMotorSim = new SparkFlexSim(leftIntakeMotor, DCMotor.getNeoVortex(1));
   }
 
   @Override
@@ -157,14 +175,14 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void intakeForward() {
-    intakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * powerLimit * -1.0, ControlType.kVelocity);
+    leftIntakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * powerLimit * -1.0, ControlType.kVelocity);
     //intakeMotor.set(intakeSpeed * powerLimit * -1);
   }
   public void raiseIntakeToJostle() {
     liftMotor.set(-0.1);
   }
   public void intakeToJostle() {
-    intakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * 0.25, ControlType.kVelocity);
+    leftIntakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * 0.25, ControlType.kVelocity);
     //intakeMotor.set(-0.2);
     
   } 
@@ -173,7 +191,7 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void intakeBackward() {
-    intakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * powerLimit, ControlType.kVelocity);
+    leftIntakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * powerLimit, ControlType.kVelocity);
     //intakeMotor.set((intakeSpeed * powerLimit));
   }
 
@@ -182,7 +200,7 @@ public class Intake extends AdvancedSubsystem {
   }
 
   public void stopIntake() {
-    intakeMotor.stopMotor();
+  leftIntakeMotor.stopMotor();
   }
 
   public boolean isIntakeUp() {
@@ -192,6 +210,7 @@ public class Intake extends AdvancedSubsystem {
   public boolean isIntakeDown() {
     return liftLimitSwitchDown.isPressed();
   }
+  
 
   @Override
   public void periodic() {
@@ -205,13 +224,13 @@ public class Intake extends AdvancedSubsystem {
         
           private double getTotalCurrent() {
         return liftMotor.getOutputCurrent()
-        + intakeMotor.getOutputCurrent();
+        + leftIntakeMotor.getOutputCurrent();
       }
     
           private double getTotalVoltage() {
         double total = 0;
         total += liftMotor.getAppliedOutput() * liftMotor.getBusVoltage();
-        total += intakeMotor.getAppliedOutput() * liftMotor.getBusVoltage();
+        total += leftIntakeMotor.getAppliedOutput() * liftMotor.getBusVoltage();
 
         return total/2;
       }
