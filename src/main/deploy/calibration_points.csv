@@ -37,8 +37,8 @@
 # Last Updated: 2026-03-30
 
 name,x_meters,y_meters,rotation_degrees,initial_position
-BLUE_CORNER_LOW,8.229,4.035,0,true
-BLUE_SIDE_MID_LOW,7.229,4.035,0,false
-RED_CORNER_LOW,8.229,3.5397,0,false
-RED_SIDE_MID,8.229,4.5303,180,false
-RED_CORNER_HIGH,9.229,4.035,180,false
+MIDDLE_MIDDLE,8.229,4.035,0,true
+MIDDLE_DOOR, 8.229,3.539,0,false
+MIDDLE_WALL,8.229,4.503,0,false
+FRONT,7.229,4.035,0,false
+BACK,9.229,4.035,0,false

@@ -10,7 +10,9 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
@@ -34,6 +36,12 @@ public class VisionCalibrationEngine extends SubsystemBase {
     public static final int CALIBRATION_DATA_POINTS = 150; // ~3 seconds at 50Hz
     public static final double CALIBRATION_REGION_SIZE = 1.5; // meters - bounded region to prevent drift
     public static final double CALIBRATION_TIMEOUT = 30.0; // seconds
+    
+    // Measurement rejection thresholds (to filter jittery data)
+    private static final double MAX_INSTANTANEOUS_ERROR = 0.5; // meters - reject errors > this
+    private static final int MIN_TAGS_FOR_MEASUREMENT = 1; // Require at least 1 tag
+    private static final double MAX_DISTANCE_TO_TAGS = 6.0; // meters - reject if tags too far
+    private static final double MAX_POSE_JUMP = 0.3; // meters - between-frame jump threshold
     
     private final CommandSwerveDrivetrain drivetrain;
     
@@ -65,6 +73,11 @@ public class VisionCalibrationEngine extends SubsystemBase {
     private Pose2d calibrationOrigin;
     private double calibrationStartTime;
     private int currentDataPointCount = 0;
+    
+    // Measurement filtering (to reduce jitter)
+    private Pose2d lastVisionPose = null;  // Track last valid measurement for jump detection
+    private int rejectedMeasurementCount = 0;  // Counter for diagnostics
+    private int acceptedMeasurementCount = 0;  // Counter for diagnostics
     
     // Calibration results
     private CalibrationResult result;
@@ -144,6 +157,15 @@ public class VisionCalibrationEngine extends SubsystemBase {
      */
     public void startCalibration(Pose2d knownInitialPose) {
         startCalibration(knownInitialPose, false);
+    }
+    
+    /**
+     * Start transform estimation calibration (Phase 1).
+     * Same as startCalibration but flags this for transform correction analysis.
+     */
+    public void startTransformCalibration(Pose2d knownInitialPose) {
+        startCalibration(knownInitialPose, false);
+        // Will process in PROCESSING state to compute transform corrections
     }
     
     /**
@@ -247,9 +269,55 @@ public class VisionCalibrationEngine extends SubsystemBase {
         );
         dataPoints.add(odoPoint);
         
-        // NEW: Collect per-camera measurements
+        // NEW: Collect per-camera measurements with quality filtering
         List<Vision.CameraMeasurement> cameraMeasurements = vision.getCameraMeasurements();
         for (Vision.CameraMeasurement measurement : cameraMeasurements) {
+            // FILTER 1: Check minimum tag count
+            if (measurement.numTagsVisible < MIN_TAGS_FOR_MEASUREMENT) {
+                SmartDashboard.putNumber(
+                    "VisionCalibration/" + measurement.cameraName + "/RejectedReason",
+                    1); // Not enough tags
+                rejectedMeasurementCount++;
+                continue;
+            }
+            
+            // FILTER 2: Check distance to tags (distant tags = less reliable)
+            if (measurement.avgDistanceToTags > MAX_DISTANCE_TO_TAGS) {
+                SmartDashboard.putNumber(
+                    "VisionCalibration/" + measurement.cameraName + "/RejectedReason",
+                    2); // Tags too far away
+                rejectedMeasurementCount++;
+                continue;
+            }
+            
+            // FILTER 3: Check instantaneous error against odometry
+            double instantaneousError = currentOdometryPose.getTranslation()
+                .getDistance(measurement.estimatedPose.getTranslation());
+            if (instantaneousError > MAX_INSTANTANEOUS_ERROR) {
+                SmartDashboard.putNumber(
+                    "VisionCalibration/" + measurement.cameraName + "/RejectedReason",
+                    3); // Error too large
+                rejectedMeasurementCount++;
+                continue;
+            }
+            
+            // FILTER 4: Check for pose jumps (between-frame measurement stability)
+            if (lastVisionPose != null) {
+                double poseJump = measurement.estimatedPose.getTranslation()
+                    .getDistance(lastVisionPose.getTranslation());
+                if (poseJump > MAX_POSE_JUMP) {
+                    SmartDashboard.putNumber(
+                        "VisionCalibration/" + measurement.cameraName + "/RejectedReason",
+                        4); // Pose jumped too much
+                    rejectedMeasurementCount++;
+                    continue;
+                }
+            }
+            
+            // Measurement passed all filters - ACCEPT IT
+            acceptedMeasurementCount++;
+            lastVisionPose = measurement.estimatedPose;
+            
             // Create a copy of the data point with camera-specific data
             CalibrationDataPoint cameraPoint = new CalibrationDataPoint(
                 currentOdometryPose,
@@ -266,17 +334,26 @@ public class VisionCalibrationEngine extends SubsystemBase {
                 .add(cameraPoint);
             
             // Publish per-camera error to SmartDashboard (real-time feedback)
-            double error = currentOdometryPose.getTranslation()
-                .getDistance(measurement.estimatedPose.getTranslation());
             SmartDashboard.putNumber(
                 "VisionCalibration/" + measurement.cameraName + "/InstantaneousError",
-                error
+                instantaneousError
             );
             SmartDashboard.putNumber(
                 "VisionCalibration/" + measurement.cameraName + "/TagsVisible",
                 measurement.numTagsVisible
             );
+            SmartDashboard.putNumber(
+                "VisionCalibration/" + measurement.cameraName + "/AvgDistance",
+                measurement.avgDistanceToTags
+            );
+            SmartDashboard.putNumber(
+                "VisionCalibration/" + measurement.cameraName + "/RejectedReason",
+                0); // No rejection
         }
+        
+        // Publish rejection statistics every frame
+        SmartDashboard.putNumber("VisionCalibration/AcceptedMeasurements", acceptedMeasurementCount);
+        SmartDashboard.putNumber("VisionCalibration/RejectedMeasurements", rejectedMeasurementCount);
         
         currentDataPointCount++;
     }
@@ -416,18 +493,148 @@ public class VisionCalibrationEngine extends SubsystemBase {
     
     private void computeCameraTransformCorrections() {
         // Use collected vision vs odometry error to compute transform adjustments
-        // This employs iterative least-squares optimization
-        
-        // For each camera, if we have sufficient confidence in the error measurement,
-        // we can estimate translation and rotation corrections
+        // This employs least-squares fitting for each camera
         
         result.transformCorrections = new Transform3d[4];
+        String[] cameraNames = {"heart", "diamond", "club", "spade"};
         
-        // Example: If systematic error is detected, suggest corrections
-        // In practice, this would use more sophisticated optimization
+        for (int i = 0; i < 4; i++) {
+            String cameraName = cameraNames[i];
+            List<CalibrationDataPoint> cameraMeasurements = 
+                dataPointsByCamera.getOrDefault(cameraName, new ArrayList<>());
+            
+            if (cameraMeasurements.size() < 5) {
+                // Not enough data for this camera
+                result.transformCorrections[i] = new Transform3d();  // Identity
+                SmartDashboard.putString("VisionCalibration/" + cameraName + "/CorrectionStatus", 
+                    "Insufficient data (" + cameraMeasurements.size() + " points)");
+                continue;
+            }
+            
+            // Solve for best-fit Transform3d using least-squares
+            Transform3d correction = solveTransformCorrection(cameraMeasurements);
+            result.transformCorrections[i] = correction;
+            
+            // Publish results to SmartDashboard
+            publishTransformCorrectionToSmartDashboard(cameraName, correction, cameraMeasurements);
+        }
         
         SmartDashboard.putString("VisionCalibration/TransformStatus", 
-            "Transform corrections computed. Review error distributions.");
+            "Transform corrections computed for all cameras.");
+    }
+    
+    /**
+     * Solve for the Transform3d that best fits vision measurements to odometry trajectory.
+     * Uses least-squares minimization to find systematic camera mount offset.
+     */
+    private Transform3d solveTransformCorrection(List<CalibrationDataPoint> measurements) {
+        // Compute mean error - this is the systematic offset
+        double sumX = 0, sumY = 0;
+        double sumYaw = 0;
+        int validCount = 0;
+        
+        for (CalibrationDataPoint point : measurements) {
+            if (point.visionPose.isEmpty()) continue;
+            
+            Pose2d vision = point.visionPose.get();
+            Pose2d odometry = point.odometryPose;
+            
+            // Error in 2D: difference between where camera thinks we are
+            // and where odometry says we are
+            double errorX = odometry.getX() - vision.getX();
+            double errorY = odometry.getY() - vision.getY();
+            double errorYaw = odometry.getRotation().getRadians() 
+                            - vision.getRotation().getRadians();
+            
+            // Normalize yaw error to [-pi, pi]
+            while (errorYaw > Math.PI) errorYaw -= 2 * Math.PI;
+            while (errorYaw < -Math.PI) errorYaw += 2 * Math.PI;
+            
+            sumX += errorX;
+            sumY += errorY;
+            sumYaw += errorYaw;
+            validCount++;
+        }
+        
+        if (validCount == 0) return new Transform3d();
+        
+        // Average error is the systematic offset
+        double avgErrorX = sumX / validCount;
+        double avgErrorY = sumY / validCount;
+        double avgErrorYaw = sumYaw / validCount;
+        
+        // Return Transform3d that corrects this offset
+        return new Transform3d(
+            new Translation3d(avgErrorX, avgErrorY, 0),
+            new Rotation3d(0, 0, avgErrorYaw)
+        );
+    }
+    
+    /**
+     * Publish transform correction and residual error metrics to SmartDashboard.
+     */
+    private void publishTransformCorrectionToSmartDashboard(
+        String cameraName,
+        Transform3d correction,
+        List<CalibrationDataPoint> measurements
+    ) {
+        String prefix = "VisionCalibration/" + cameraName;
+        
+        // Translation components (meters)
+        SmartDashboard.putNumber(prefix + "/TransformCorrectionX", correction.getX());
+        SmartDashboard.putNumber(prefix + "/TransformCorrectionY", correction.getY());
+        SmartDashboard.putNumber(prefix + "/TransformCorrectionZ", correction.getZ());
+        
+        // Rotation components (degrees for readability)
+        SmartDashboard.putNumber(prefix + "/TransformCorrectionRoll", 
+            Math.toDegrees(correction.getRotation().getX()));
+        SmartDashboard.putNumber(prefix + "/TransformCorrectionPitch", 
+            Math.toDegrees(correction.getRotation().getY()));
+        SmartDashboard.putNumber(prefix + "/TransformCorrectionYaw", 
+            Math.toDegrees(correction.getRotation().getZ()));
+        
+        // Residual error (how well does corrected transform explain measurements?)
+        double residualError = computeResidualError(correction, measurements);
+        SmartDashboard.putNumber(prefix + "/ResidualError", residualError);
+        SmartDashboard.putNumber(prefix + "/NumDataPoints", measurements.size());
+        
+        String statusMessage = String.format(
+            "X:%+.3fm Y:%+.3fm Yaw:%+.2f° | Residual:%.3fm (%d pts)",
+            correction.getX(), correction.getY(),
+            Math.toDegrees(correction.getRotation().getZ()),
+            residualError, measurements.size()
+        );
+        SmartDashboard.putString(prefix + "/CorrectionStatus", statusMessage);
+    }
+    
+    /**
+     * Compute residual error after applying transform correction.
+     * This indicates how well the correction explains the data.
+     */
+    private double computeResidualError(Transform3d correction, 
+        List<CalibrationDataPoint> measurements) {
+        double totalError = 0;
+        int count = 0;
+        
+        for (CalibrationDataPoint point : measurements) {
+            if (point.visionPose.isEmpty()) continue;
+            
+            Pose2d vision = point.visionPose.get();
+            Pose2d odometry = point.odometryPose;
+            
+            // After applying correction to vision pose, how close are we to odometry?
+            double correctedX = vision.getX() + correction.getX();
+            double correctedY = vision.getY() + correction.getY();
+            
+            double errorX = odometry.getX() - correctedX;
+            double errorY = odometry.getY() - correctedY;
+            double dist = Math.sqrt(errorX * errorX + errorY * errorY);
+            
+            totalError += dist;
+            count++;
+        }
+        
+        return count > 0 ? totalError / count : 0;
     }
     
     private void estimateVisionStdDevs() {
