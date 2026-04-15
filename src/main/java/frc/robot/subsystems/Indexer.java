@@ -65,10 +65,10 @@ public class Indexer extends AdvancedSubsystem {
     agitatorMotor = new SparkFlex(agitatorMotorID, MotorType.kBrushless);
     agitatorMotorController = agitatorMotor.getClosedLoopController();
     agitatorMotorConfig = new SparkFlexConfig();
-    agitatorMotorConfig.closedLoop.feedForward.sva(Constants.Indexer.INDEXER_kS, Constants.Indexer.INDEXER_kV,
-        Constants.Indexer.INDEXER_kA);
-    agitatorMotorConfig.closedLoop.pid(Constants.Indexer.INDEXER_P, Constants.Indexer.INDEXER_I,
-        Constants.Indexer.INDEXER_D);
+    agitatorMotorConfig.closedLoop.feedForward.sva(Constants.Indexer.AGITATOR_kS, Constants.Indexer.AGITATOR_kV,
+        Constants.Indexer.AGITATOR_kA);
+    agitatorMotorConfig.closedLoop.pid(Constants.Indexer.AGITATOR_kP, Constants.Indexer.AGITATOR_kI,
+        Constants.Indexer.AGITATOR_kD);
     agitatorMotorConfig
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(Constants.Indexer.CURRENT_LIMIT)
@@ -94,13 +94,13 @@ public class Indexer extends AdvancedSubsystem {
   }
 
   public void indexerForward() {
-    indexerMotorController.setSetpoint(2000, ControlType.kVelocity);
-    agitatorMotorController.setSetpoint(2000, ControlType.kVelocity);
+    indexerMotorController.setSetpoint(1000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(1000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
-    indexerMotorController.setSetpoint(-2000, ControlType.kVelocity);
-    agitatorMotorController.setSetpoint(-2000, ControlType.kVelocity);
+    indexerMotorController.setSetpoint(-1000, ControlType.kVelocity);
+    agitatorMotorController.setSetpoint(-1000, ControlType.kVelocity);
   }
 
   public void stopIndexer() {

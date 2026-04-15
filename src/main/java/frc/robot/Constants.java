@@ -213,10 +213,11 @@ public final class Constants {
     public static final int LEFT_INTAKE_MOTOR_ID = 20;
     public static final int RIGHT_INTAKE_MOTOR_ID = 22;
     public static final double INTAKE_LIFT_SPEED = 0.2;
+
     public static final int CURRENT_LIMIT = 50;
     public static final int VOLTAGE_LIMIT = 10;
     public static final double INTAKE_SPEED = 0.85;
-    public static final double INTAKE_RPM = 3000.0;
+    public static final double INTAKE_RPM = 3003.0;
     public static final double LIFT_JKMETERS_SQUARED = 0.00006;
     public static final double LIFT_MOTOR_GEARING = 1.0 / 100.0;
     public static final double INTAKE_REACH_METERS = 0.30;
@@ -225,13 +226,13 @@ public final class Constants {
     public static final double WHEEL_MOMENT_OF_INERTIA = 0.00006;
     public static final double INTAKE_GEAR_RATIO = 1.0 / 3.0;
 
-    public static final double INTAKE_P = 0.00017748;
+    public static final double INTAKE_P = 0.0002611;
     public static final double INTAKE_I = 0.0;
     public static final double INTAKE_D = 0.0;
 
-    public static final double INTAKE_kV = 0.0018466;
-    public static final double INTAKE_kA = 0.00018526;
-    public static final double INTAKE_kS = 0.11988;
+    public static final double INTAKE_kV = 0.0018851;
+    public static final double INTAKE_kA = 0.00021825;
+    public static final double INTAKE_kS = 0.046312;
 
     //public static final double JOSTLE_UP_POSITION = 
   }
@@ -245,13 +246,21 @@ public final class Constants {
     public static final double WHEEL_MOMENT_OF_INERTIA = 3.8;
     public static final double INDEXER_GEAR_RATIO = 1.0 / 10.0;
 
-    public static final double INDEXER_kS = 0.0019755;
-    public static final double INDEXER_kV = 0.00056382;
-    public static final double INDEXER_kA = 0.089733;
+    public static final double INDEXER_kS = 0.35936;
+    public static final double INDEXER_kV = 0.0023692;
+    public static final double INDEXER_kA = 0.00078017;
 
-    public static final double INDEXER_P = 0.00003;
-    public static final double INDEXER_I = 0.000001;
-    public static final double INDEXER_D = 0.00001;
+    public static final double INDEXER_P = 0.0018638;
+    public static final double INDEXER_I = 0.00000;
+    public static final double INDEXER_D = 0.0000;
+
+    public static final double AGITATOR_kS = 0.023338;
+    public static final double AGITATOR_kV = 0.0017887;
+    public static final double AGITATOR_kA = 0.00011598;
+
+    public static final double AGITATOR_kP = 0.000085973;
+    public static final double AGITATOR_kI = 0.00000;
+    public static final double AGITATOR_kD = 0.00;
     
     public static final double AGITATOR_RAMP_RATE = 0.5;
     public static final double INDEXER_RAMP_RATE = 1.0;
