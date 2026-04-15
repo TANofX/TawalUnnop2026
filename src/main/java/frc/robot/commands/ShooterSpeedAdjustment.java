@@ -28,6 +28,7 @@ public class ShooterSpeedAdjustment extends Command {
     done = false;
     targetRPM = 2000;
     shooter.setShooterRPM(targetRPM);
+    shooter.setTransferRPM(targetRPM);
 
     SmartDashboard.putNumber(baseKey + "/Target", targetRPM);
     SmartDashboard.putNumber(baseKey + "/RPM Increment", 100);
@@ -43,6 +44,7 @@ public class ShooterSpeedAdjustment extends Command {
     // Optional safety clamp 
     if (targetRPM < 0) targetRPM = 0;
     shooter.setShooterRPM(targetRPM);
+    shooter.setTransferRPM(targetRPM);
     SmartDashboard.putNumber(baseKey + "/Target", targetRPM);
   }
 

@@ -10,13 +10,11 @@ import frc.robot.subsystems.Shooter;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ShooterCommand extends Command {
   private Shooter shooter;
-  public double shooterRPM;
-  public double transferRPM;
+  public double rpm;
   /** Creates a new ShooterCommand. */
-  public ShooterCommand(Shooter shooter, double shooterRPM, double transferRPM) {
+  public ShooterCommand(Shooter shooter, double rpm) {
     this.shooter = shooter;
-    this.shooterRPM = shooterRPM;
-    this.transferRPM = transferRPM;
+    this.rpm = rpm;
     addRequirements(shooter);
     // Use addRequirements() here to declare subsystem dependencies.
   }
@@ -29,9 +27,9 @@ public class ShooterCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    shooter.setShooterRPM(shooterRPM);
+    shooter.setShooterRPM(rpm);
     if (shooter.shooterAtSpeed()) {
-      shooter.setTransferRPM(transferRPM);
+      shooter.setTransferRPM(rpm);
     }
   }
 

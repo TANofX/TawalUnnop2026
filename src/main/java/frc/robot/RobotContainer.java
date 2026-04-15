@@ -15,7 +15,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -121,7 +120,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureButtonBindings();
     // Register Named PathPlanner Commands
-    NamedCommands.registerCommand("Shoot", new ShooterCommand(shooter, 2750.0, 2750.0/2));
+    NamedCommands.registerCommand("Shoot", new ShooterCommand(shooter, 2750.0));
     NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     NamedCommands.registerCommand("Intake Push", intakePushFuel());
     NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
@@ -168,7 +167,7 @@ public class RobotContainer {
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    driver.RT().whileTrue(new ShooterCommand(shooter, 2750.0, 2750.0/2));
+    driver.RT().whileTrue(new ShooterCommand(shooter, 2750.0));
     driver.LB().whileTrue(intakePushFuel());
     driver.Y().whileTrue(intake.putUpIntake());
     driver.A().whileTrue(indexer.shootFuel());

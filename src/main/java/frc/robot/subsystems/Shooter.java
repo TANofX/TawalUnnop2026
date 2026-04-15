@@ -8,6 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.revrobotics.RelativeEncoder;
+import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -31,21 +40,19 @@ public class Shooter extends AdvancedSubsystem {
   private final SparkFlex shooterLeftTopMotor;
   private final SparkFlex shooterRightBottomMotor;
   private final SparkFlex shooterRightTopMotor;
-  private SparkFlex shooterTransferMotor = null;
+  private TalonFX shooterTransferMotor = null;
 
   private final RelativeEncoder shooterLeftBottomEncoder;
   private final RelativeEncoder shooterLeftTopEncoder;
   private final RelativeEncoder shooterRightBottomEncoder;
   private final RelativeEncoder shooterRightTopEncoder;
-  private RelativeEncoder shooterTransferEncoder;
 
   private final SparkClosedLoopController shooterLeftController; // leftTop leader
   // private final SparkClosedLoopController shooterRightController; // rightTop
   // leader
-  private SparkClosedLoopController shooterTransferController;
+  private TalonFXConfiguration shooterTransferConfig;
   private boolean hardwareFollowConfigured = false;
   private double topTargetRPM = 0.0;
-  private double bottomTargetRPM = 0.0;
 
   // RECOVERY TRACKING STUFF
 
@@ -69,35 +76,11 @@ public class Shooter extends AdvancedSubsystem {
     this(TOP_LEFT_SHOOTER_ID, BOTTOM_LEFT_SHOOTER_ID, TOP_RIGHT_SHOOTER_ID, BOTTOM_RIGHT_SHOOTER_ID);
 
     // CREATE EXTRA MOTOR
-    shooterTransferMotor = new SparkFlex(TRANSFER_SHOOTER_ID, MotorType.kBrushless);
-
-    // OBTAIN ENCODER
-    shooterTransferEncoder = shooterTransferMotor.getEncoder();
-
-    // CONFIG CONTROLLER
-    shooterTransferController = shooterTransferMotor.getClosedLoopController();
-    SparkFlexConfig shooterTransferConfig = new SparkFlexConfig();
-    shooterTransferConfig
-        .idleMode(IdleMode.kCoast)
-        .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        // .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
-        .inverted(false);
-
-    shooterTransferConfig.closedLoop.feedForward
-        .kS(Constants.Shooter.TRANSFER_kS)
-        .kV(Constants.Shooter.TRANSFER_kV)
-        .kA(Constants.Shooter.TRANSFER_kA);
-
-    // PID CONFIG
-    shooterTransferConfig.closedLoop
-        .p(Constants.Shooter.TRANSFER_BOTTOM_P)
-        .i(Constants.Shooter.TRANSFER_BOTTOM_I)
-        .d(Constants.Shooter.TRANSFER_BOTTOM_D);
-
-    shooterTransferConfig
-        .inverted(false);
-
-    shooterTransferMotor.configure(shooterTransferConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    shooterTransferMotor = new TalonFX(TRANSFER_SHOOTER_ID, "rio");
+    shooterTransferConfig = new TalonFXConfiguration();
+    shooterTransferConfig.withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast).withInverted(InvertedValue.Clockwise_Positive));
+    shooterTransferConfig.withSlot0(new Slot0Configs().withKP(Constants.Shooter.TRANSFER_BOTTOM_P).withKI(0.0).withKD(0.0).withKS(Constants.Shooter.TRANSFER_kS).withKV(Constants.Shooter.TRANSFER_kV).withKA(Constants.Shooter.TRANSFER_kA));
+    shooterTransferMotor.getConfigurator().apply(shooterTransferConfig);
   }
 
   /** Creates a new Shooter. 4 Motors */
@@ -203,16 +186,15 @@ public class Shooter extends AdvancedSubsystem {
   }
 
   public void setTransferRPM(double rpm) {
-    shooterTransferController.setSetpoint(rpm, ControlType.kVelocity);
+    shooterTransferMotor.setControl(new VelocityVoltage(rpm * 60));
   }
-
   public double getTopSetpoint() {
     return shooterLeftController.getSetpoint();
   }
 
   public void stopShooterMotors() {
     shooterLeftTopMotor.stopMotor();
-    topTargetRPM = bottomTargetRPM = 0;
+    topTargetRPM = 0;
   }
 
   public void stopTransferMotor() {
@@ -227,15 +209,9 @@ public class Shooter extends AdvancedSubsystem {
     return hasTarget() && topMotorsAtSpeed();
   }
 
-  public Command stopMotors() {
-    return Commands.sequence(
-        Commands.runOnce(() -> {
-          stopShooterMotors();
-        }), Commands.runOnce(
-          () -> {
-            stopTransferMotor();
-          }
-        ));
+  public void stopMotors() {
+    stopShooterMotors();
+    stopTransferMotor();
   }
 
   // this stuff is for robotLogger frfr
@@ -248,7 +224,7 @@ public class Shooter extends AdvancedSubsystem {
   }
 
   public double getTransferRPM() {
-    return shooterTransferEncoder.getVelocity();
+    return shooterTransferMotor.getVelocity().getValueAsDouble() / 60;
   }
 
   public double getTopCurrentDraw() {
@@ -342,7 +318,6 @@ public class Shooter extends AdvancedSubsystem {
     total += shooterRightTopMotor.getAppliedOutput() * shooterRightTopMotor.getBusVoltage();
     total += shooterLeftBottomMotor.getAppliedOutput() * shooterLeftBottomMotor.getBusVoltage();
     total += shooterRightBottomMotor.getAppliedOutput() * shooterRightBottomMotor.getBusVoltage();
-    total += ((shooterTransferMotor == null) ? 0 : shooterTransferMotor.getAppliedOutput() * shooterTransferMotor.getBusVoltage());
 
     return shooterTransferMotor == null ? 4 : 5;
   }
@@ -351,8 +326,7 @@ public class Shooter extends AdvancedSubsystem {
     return shooterRightTopMotor.getOutputCurrent()
         + shooterLeftTopMotor.getOutputCurrent()
         + shooterRightBottomMotor.getOutputCurrent()
-        + shooterLeftBottomMotor.getOutputCurrent()
-        + ((shooterTransferMotor == null) ? 0 : shooterTransferMotor.getOutputCurrent());
+        + shooterLeftBottomMotor.getOutputCurrent();
   }
 
   @Override

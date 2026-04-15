@@ -302,7 +302,7 @@ public final class Constants {
     @CanId(CanId.Type.MOTOR)
     public static final int TRANSFER_SHOOTER_ID = 34;
 
-    public static final double TOP_LEFT_SHOOTER_P = 0.0008;//0.00065;
+    public static final double TOP_LEFT_SHOOTER_P = 0.00009;//0.00065;
     public static final double TOP_LEFT_SHOOTER_I = 0.0;
     public static final double TOP_LEFT_SHOOTER_D = 0.0;
 
@@ -311,7 +311,7 @@ public final class Constants {
     public static final double TOP_RIGHT_SHOOTER_D = 0.0;
 
     // public static final double TOP_LEFT_kV = 0.12886;
-    public static final double TOP_LEFT_kV = 0.00200;//0.0019305; //0.0023348;
+    public static final double TOP_LEFT_kV = 0.00175000; //0.0023348;
     public static final double TOP_LEFT_kA = 0.00039146; //0.00062445; //0.00043609;
     public static final double TOP_LEFT_kS = 0.22632;//0.0; //0.18531;
 
@@ -322,16 +322,16 @@ public final class Constants {
 
     public static final double RAMP_RATE = 0.5;
 
-    public static final double TRANSFER_kV = 0.0018718;
-    public static final double TRANSFER_kA = 0.00015177;
-    public static final double TRANSFER_kS = 0.089733;
+    public static final double TRANSFER_kV = 0.1167;
+    public static final double TRANSFER_kA = 0.002607;
+    public static final double TRANSFER_kS = 0.090533;
 
-    public static final double TRANSFER_BOTTOM_P = 0.0001;
-    public static final double TRANSFER_BOTTOM_I = 0.000001;
-    public static final double TRANSFER_BOTTOM_D = 0.0005;
+    public static final double TRANSFER_BOTTOM_P = 0.00724118;
+    public static final double TRANSFER_BOTTOM_I = 0.0;
+    public static final double TRANSFER_BOTTOM_D = 0.0;
     
     public static final double shooterMotorTolerance = 75.0;
-    public static final int SHOOTER_CURRENT_STALL_LIMIT = 25;
+    public static final int SHOOTER_CURRENT_STALL_LIMIT = 30;
     public static final int SHOOTER_CURRENT_FREE_LIMIT = 80;
     public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;
   }
