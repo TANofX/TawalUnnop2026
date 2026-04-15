@@ -99,8 +99,8 @@ public class DriveModes {
 
                 break;
             case SHOOTING_ANGLE:
-                double shootingTarget = fireControl.getRobotTarget().getDegrees();
-                angularVelocity = angularVelocityCalc(currentAngleDeg, shootingTarget);
+                double ShooterTarget = fireControl.getRobotTarget().getDegrees();
+                angularVelocity = angularVelocityCalc(currentAngleDeg, ShooterTarget);
 
                 break;
             case TESTING:

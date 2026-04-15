@@ -300,7 +300,7 @@ public final class Constants {
    
     // back bottom motor
     @CanId(CanId.Type.MOTOR)
-    public static final int BITTY_SHOOTER_ID = 34;
+    public static final int TRANSFER_SHOOTER_ID = 34;
 
     public static final double TOP_LEFT_SHOOTER_P = 0.0008;//0.00065;
     public static final double TOP_LEFT_SHOOTER_I = 0.0;
@@ -322,13 +322,13 @@ public final class Constants {
 
     public static final double RAMP_RATE = 0.5;
 
-    public static final double BITTY_kV = 0.0018718;
-    public static final double BITTY_kA = 0.00015177;
-    public static final double BITTY_kS = 0.089733;
+    public static final double TRANSFER_kV = 0.0018718;
+    public static final double TRANSFER_kA = 0.00015177;
+    public static final double TRANSFER_kS = 0.089733;
 
-    public static final double BITTY_BOTTOM_P = 0.0001;
-    public static final double BITTY_BOTTOM_I = 0.000001;
-    public static final double BITTY_BOTTOM_D = 0.0005;
+    public static final double TRANSFER_BOTTOM_P = 0.0001;
+    public static final double TRANSFER_BOTTOM_I = 0.000001;
+    public static final double TRANSFER_BOTTOM_D = 0.0005;
     
     public static final double shooterMotorTolerance = 75.0;
     public static final int SHOOTER_CURRENT_STALL_LIMIT = 25;

@@ -31,17 +31,18 @@ public class Shooter extends AdvancedSubsystem {
   private final SparkFlex shooterLeftTopMotor;
   private final SparkFlex shooterRightBottomMotor;
   private final SparkFlex shooterRightTopMotor;
-  private SparkFlex shooterBittyBottomMotor = null;
+  private SparkFlex shooterTransferMotor = null;
 
   private final RelativeEncoder shooterLeftBottomEncoder;
   private final RelativeEncoder shooterLeftTopEncoder;
   private final RelativeEncoder shooterRightBottomEncoder;
   private final RelativeEncoder shooterRightTopEncoder;
-  private RelativeEncoder shooterBittyBottomEncoder;
+  private RelativeEncoder shooterTransferEncoder;
 
-private final SparkClosedLoopController shooterLeftController;  // leftTop leader
-//private final SparkClosedLoopController shooterRightController; // rightTop leader
-  private SparkClosedLoopController shooterBittyBottomController;
+  private final SparkClosedLoopController shooterLeftController; // leftTop leader
+  // private final SparkClosedLoopController shooterRightController; // rightTop
+  // leader
+  private SparkClosedLoopController shooterTransferController;
   private boolean hardwareFollowConfigured = false;
   private double topTargetRPM = 0.0;
   private double bottomTargetRPM = 0.0;
@@ -64,40 +65,39 @@ private final SparkClosedLoopController shooterLeftController;  // leftTop leade
       final int BOTTOM_LEFT_SHOOTER_ID,
       final int TOP_RIGHT_SHOOTER_ID,
       final int BOTTOM_RIGHT_SHOOTER_ID,
-      final int BITTY_BOTTOM_SHOOTER_ID) {
+      final int TRANSFER_SHOOTER_ID) {
     this(TOP_LEFT_SHOOTER_ID, BOTTOM_LEFT_SHOOTER_ID, TOP_RIGHT_SHOOTER_ID, BOTTOM_RIGHT_SHOOTER_ID);
 
     // CREATE EXTRA MOTOR
-    shooterBittyBottomMotor = new SparkFlex(BITTY_BOTTOM_SHOOTER_ID, MotorType.kBrushless);
+    shooterTransferMotor = new SparkFlex(TRANSFER_SHOOTER_ID, MotorType.kBrushless);
 
     // OBTAIN ENCODER
-    shooterBittyBottomEncoder = shooterBittyBottomMotor.getEncoder();
+    shooterTransferEncoder = shooterTransferMotor.getEncoder();
 
     // CONFIG CONTROLLER
-    shooterBittyBottomController = shooterBittyBottomMotor.getClosedLoopController();
-    SparkFlexConfig shooterBittyBottomConfig = new SparkFlexConfig();
-    shooterBittyBottomConfig
+    shooterTransferController = shooterTransferMotor.getClosedLoopController();
+    SparkFlexConfig shooterTransferConfig = new SparkFlexConfig();
+    shooterTransferConfig
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
+        // .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
         .inverted(false);
 
-    shooterBittyBottomConfig.closedLoop.feedForward
-        .kS(Constants.Shooter.BITTY_kS)
-        .kV(Constants.Shooter.BITTY_kV)
-        .kA(Constants.Shooter.BITTY_kA);
+    shooterTransferConfig.closedLoop.feedForward
+        .kS(Constants.Shooter.TRANSFER_kS)
+        .kV(Constants.Shooter.TRANSFER_kV)
+        .kA(Constants.Shooter.TRANSFER_kA);
 
     // PID CONFIG
-    shooterBittyBottomConfig.closedLoop
-        .p(Constants.Shooter.BITTY_BOTTOM_P)
-        .i(Constants.Shooter.BITTY_BOTTOM_I)
-        .d(Constants.Shooter.BITTY_BOTTOM_D);
+    shooterTransferConfig.closedLoop
+        .p(Constants.Shooter.TRANSFER_BOTTOM_P)
+        .i(Constants.Shooter.TRANSFER_BOTTOM_I)
+        .d(Constants.Shooter.TRANSFER_BOTTOM_D);
 
-    shooterBittyBottomConfig
-    .inverted(false)
-    .follow(shooterRightTopMotor, false);
+    shooterTransferConfig
+        .inverted(false);
 
-shooterBittyBottomMotor.configure(shooterBittyBottomConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    shooterTransferMotor.configure(shooterTransferConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   /** Creates a new Shooter. 4 Motors */
@@ -124,183 +124,155 @@ shooterBittyBottomMotor.configure(shooterBittyBottomConfig, ResetMode.kResetSafe
 
     // CONFIG CONTROLLERS
     shooterLeftController = shooterLeftTopMotor.getClosedLoopController();
-SparkFlexConfig shooterLeftConfig = new SparkFlexConfig();
-shooterLeftConfig.closedLoop.feedForward
-    .kS(Constants.Shooter.TOP_LEFT_kS)
-    .kV(Constants.Shooter.TOP_LEFT_kV)
-    .kA(Constants.Shooter.TOP_LEFT_kA);
+    SparkFlexConfig shooterLeftConfig = new SparkFlexConfig();
+    shooterLeftConfig.closedLoop.feedForward
+        .kS(Constants.Shooter.TOP_LEFT_kS)
+        .kV(Constants.Shooter.TOP_LEFT_kV)
+        .kA(Constants.Shooter.TOP_LEFT_kA);
 
-//shooterRightController = shooterRightTopMotor.getClosedLoopController();
-SparkFlexConfig shooterRightConfig = new SparkFlexConfig();
-shooterRightConfig.closedLoop.feedForward
-    .kS(Constants.Shooter.TOP_RIGHT_kS)
-    .kV(Constants.Shooter.TOP_RIGHT_kV)
-    .kA(Constants.Shooter.TOP_RIGHT_kA);
+    // shooterRightController = shooterRightTopMotor.getClosedLoopController();
+    SparkFlexConfig shooterRightConfig = new SparkFlexConfig();
+    shooterRightConfig.closedLoop.feedForward
+        .kS(Constants.Shooter.TOP_RIGHT_kS)
+        .kV(Constants.Shooter.TOP_RIGHT_kV)
+        .kA(Constants.Shooter.TOP_RIGHT_kA);
 
-shooterLeftConfig.closedLoop
-    .p(Constants.Shooter.TOP_LEFT_SHOOTER_P)
-    .i(Constants.Shooter.TOP_LEFT_SHOOTER_I)
-    .d(Constants.Shooter.TOP_LEFT_SHOOTER_D);
+    shooterLeftConfig.closedLoop
+        .p(Constants.Shooter.TOP_LEFT_SHOOTER_P)
+        .i(Constants.Shooter.TOP_LEFT_SHOOTER_I)
+        .d(Constants.Shooter.TOP_LEFT_SHOOTER_D);
 
-shooterRightConfig.closedLoop
-    .p(Constants.Shooter.TOP_RIGHT_SHOOTER_P)
-    .i(Constants.Shooter.TOP_RIGHT_SHOOTER_I)
-    .d(Constants.Shooter.TOP_RIGHT_SHOOTER_D);
+    shooterRightConfig.closedLoop
+        .p(Constants.Shooter.TOP_RIGHT_SHOOTER_P)
+        .i(Constants.Shooter.TOP_RIGHT_SHOOTER_I)
+        .d(Constants.Shooter.TOP_RIGHT_SHOOTER_D);
 
-shooterLeftConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE);
-shooterRightConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE);
+    shooterLeftConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE);
+    shooterRightConfig.closedLoopRampRate(Constants.Shooter.RAMP_RATE);
 
-// REPLACE the entire shooterTopConfig idle/current/voltage/inverted block and the try{} block WITH:
+    // REPLACE the entire shooterTopConfig idle/current/voltage/inverted block and
+    // the try{} block WITH:
 
-shooterLeftConfig
-    .idleMode(IdleMode.kCoast)
-    .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-    .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
-    .inverted(false); // LEFT LEADER (positive)
-
-shooterLeftTopMotor.configure(shooterLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-try {
-    SparkFlexConfig leftBottomConfig = new SparkFlexConfig();
-    leftBottomConfig
+    shooterLeftConfig
         .idleMode(IdleMode.kCoast)
-        //.smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
-        .follow(shooterLeftTopMotor, false); // same direction as left leader
+        .smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
+        .voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
+        .inverted(false); // LEFT LEADER (positive)
 
-    shooterRightConfig
-        .idleMode(IdleMode.kCoast)
-        //.smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
-        .inverted(true);//.follow(shooterLeftTopMotor, true); // RIGHT LEADER (negative)
+    shooterLeftTopMotor.configure(shooterLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    SparkFlexConfig rightBottomConfig = new SparkFlexConfig();
-    rightBottomConfig
-        .idleMode(IdleMode.kCoast)
-        //.smartCurrentLimit(Constants.Shooter.SHOOTER_CURRENT_STALL_LIMIT, Constants.Shooter.SHOOTER_CURRENT_FREE_LIMIT)
-        //.voltageCompensation(Constants.Shooter.SHOOTER_VOLTAGE_LIMIT)
-        .follow(shooterRightTopMotor, false); // same direction as right leader
+    try {
+      SparkFlexConfig leftBottomConfig = new SparkFlexConfig();
+      leftBottomConfig
+          .idleMode(IdleMode.kCoast)
+          .follow(shooterLeftTopMotor, false); // same direction as left leader
 
-    shooterLeftBottomMotor.configure(leftBottomConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    shooterRightTopMotor.configure(shooterRightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    shooterRightBottomMotor.configure(rightBottomConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    hardwareFollowConfigured = true;
-} catch (Exception ex) {
-    hardwareFollowConfigured = false;
-}
-      }
+      shooterRightConfig
+          .idleMode(IdleMode.kCoast)
+          .inverted(true);// .follow(shooterLeftTopMotor, true); // RIGHT LEADER (negative)
 
-  // methods
-  // simple, just stopping motors
-  public void stopTopShooterMotors() {
-    shooterLeftTopMotor.stopMotor();
-  }
+      SparkFlexConfig rightBottomConfig = new SparkFlexConfig();
+      rightBottomConfig
+          .idleMode(IdleMode.kCoast)
+          .follow(shooterRightTopMotor, false); // same direction as right leader
 
-  public void stopBottomShooterMotors() {
-    shooterLeftBottomMotor.stopMotor();
-    if (shooterBittyBottomMotor != null) {
-      shooterBittyBottomMotor.stopMotor();
+      shooterLeftBottomMotor.configure(leftBottomConfig, ResetMode.kResetSafeParameters,
+          PersistMode.kPersistParameters);
+      shooterRightTopMotor.configure(shooterRightConfig, ResetMode.kResetSafeParameters,
+          PersistMode.kPersistParameters);
+      shooterRightBottomMotor.configure(rightBottomConfig, ResetMode.kResetSafeParameters,
+          PersistMode.kPersistParameters);
+      hardwareFollowConfigured = true;
+    } catch (Exception ex) {
+      hardwareFollowConfigured = false;
     }
   }
 
-  // find out if motors are at correct speeds :) will be important in testing
-  // trust
-  // Check if both top motors are at speed
-  // Check if both TOP shooter motors are at speed
   public boolean topMotorsAtSpeed() {
     return Math.abs(shooterLeftTopEncoder.getVelocity() - topTargetRPM) < Constants.Shooter.shooterMotorTolerance;
   }
 
   // Check if both BOTTOM shooter motors are at speed
-public boolean bottomMotorsAtSpeed() {
-    return Math.abs(shooterLeftBottomEncoder.getVelocity() - topTargetRPM)
-        < Constants.Shooter.shooterMotorTolerance;
-}
-public void setShooterRPM(double rpm) {
+  public boolean bottomMotorsAtSpeed() {
+    return Math.abs(shooterLeftBottomEncoder.getVelocity() - topTargetRPM) < Constants.Shooter.shooterMotorTolerance;
+  }
+
+  public void setShooterRPM(double rpm) {
     topTargetRPM = rpm;
     shooterLeftController.setSetpoint(rpm, ControlType.kVelocity);
-    //shooterRightController.setSetpoint(rpm, ControlType.kVelocity); // inverted hardware handles direction
-}
+  }
 
-// public double getBottomSetpoint() {
-//     return shooterRightController.getSetpoint();
-// }
-
-  public void setShooter(double speed) {
-    shooterLeftTopMotor.set(speed);
-    shooterRightTopMotor.set(speed);
-  
-
-    if (shooterBittyBottomMotor != null) {
-    }
+  public void setTransferRPM(double rpm) {
+    shooterTransferController.setSetpoint(rpm, ControlType.kVelocity);
   }
 
   public double getTopSetpoint() {
     return shooterLeftController.getSetpoint();
   }
 
-
   public void stopShooterMotors() {
     shooterLeftTopMotor.stopMotor();
-    //shooterRightTopMotor.stopMotor();
     topTargetRPM = bottomTargetRPM = 0;
   }
-private boolean hasTarget(){
-  return topTargetRPM > 0;
-}
 
-  public boolean runIndexer(){
-        // return hasTarget() && (topMotorsAtSpeed());
-    return hasTarget() && topMotorsAtSpeed();
+  public void stopTransferMotor() {
+    shooterTransferMotor.stopMotor();
   }
 
-  // Starting shooter commands!!
+  private boolean hasTarget() {
+    return topTargetRPM > 0;
+  }
+
+  public boolean runIndexer() {
+    return hasTarget() && topMotorsAtSpeed();
+  }
 
   public Command stopMotors() {
     return Commands.sequence(
         Commands.runOnce(() -> {
           stopShooterMotors();
-        }));
+        }), Commands.runOnce(
+          () -> {
+            stopTransferMotor();
+          }
+        ));
   }
-  
+
   // this stuff is for robotLogger frfr
   public double getTopRPM() {
     return shooterLeftTopEncoder.getVelocity();
-}
-public double getBottomRPM() {
-    return shooterLeftBottomEncoder.getVelocity();
-}
+  }
 
-public double getTopCurrentDraw() {
+  public double getBottomRPM() {
+    return shooterLeftBottomEncoder.getVelocity();
+  }
+
+  public double getTransferRPM() {
+    return shooterTransferEncoder.getVelocity();
+  }
+
+  public double getTopCurrentDraw() {
     return shooterLeftTopMotor.getOutputCurrent();
 
-}
-public double getBottomCurrentDraw() {
+  }
+
+  public double getBottomCurrentDraw() {
     return shooterLeftBottomMotor.getOutputCurrent();
 
-}
-  // public Command runMotors() {
-  // return Commands.sequence(
-  // Commands.runOnce(() -> {
-
-  // })
-  // )
-  // }
+  }
 
   public Command shootCommand(double rpm) {
-    return 
-        Commands.runOnce(() -> {
-          setShooterRPM(rpm);
-        }, this);
+    return Commands.runOnce(() -> {
+      setShooterRPM(rpm);
+    }, this);
   }
 
   // Command to run the shooter backwards at a set speed
   public Command reverseShooter(double RPM) {
     return Commands.runOnce(() -> {
-        shooterLeftController.setSetpoint(-RPM, ControlType.kVelocity);
-        //shooterRightController.setSetpoint(-RPM, ControlType.kVelocity);
+      shooterLeftController.setSetpoint(-RPM, ControlType.kVelocity);
     }, this);
-}
+  }
 
   public Command spinUp(double rpm) {
     return Commands.run(
@@ -317,8 +289,6 @@ public double getBottomCurrentDraw() {
         () -> {
           double rpm = SmartDashboard.getNumber("Shooter/Target Top RPM", 0);
 
-          
-
           setShooterRPM(rpm);
         }, this);
   }
@@ -331,7 +301,7 @@ public double getBottomCurrentDraw() {
     double bottomRPM = shooterLeftBottomEncoder.getVelocity();
     double shooterLeftTopRPM = shooterLeftTopEncoder.getVelocity();
     double shooterRightTopRPM = shooterRightTopEncoder.getVelocity();
-    
+
     double currentTime = System.currentTimeMillis();
 
     // top recovery
@@ -349,20 +319,6 @@ public double getBottomCurrentDraw() {
       }
     }
 
-    // // bottom recovery
-    // if (Math.abs(bottomRPM - getBottomSetpoint()) > Constants.Shooter.shooterMotorTolerance) {
-    //   if (bottomInTolerance) { // just dropped below
-    //     bottomInTolerance = false;
-    //     bottomRecoveryStart = (long) currentTime;
-    //   }
-    // } else { // back within tolerance
-    //   if (!bottomInTolerance) {
-    //     bottomInTolerance = true;
-    //     double recoveryTime = currentTime - bottomRecoveryStart; // in ms
-    //     bottomRecoveryTimes.add((long) recoveryTime);
-    //     SmartDashboard.putNumber("Bottom Shooter Recovery Time (ms)", recoveryTime);
-    //   }
-    // }
     SmartDashboard.putNumber("Shooter/Top Volts",
         shooterLeftTopMotor.getAppliedOutput() * shooterLeftTopMotor.getBusVoltage());
 
@@ -371,40 +327,41 @@ public double getBottomCurrentDraw() {
     SmartDashboard.putNumber("Shooter/Bottom Target RPM", topTargetRPM);
     SmartDashboard.putNumber("Shooter/Top RPM", topRPM);
     SmartDashboard.putNumber("Shooter/Bottom RPM", bottomRPM);
+    SmartDashboard.putNumber("Shooter/Transfer RPM", getTransferRPM());
     SmartDashboard.putNumber("Shooter/Top Applied", shooterRightTopMotor.getAppliedOutput());
     SmartDashboard.putNumber("Shooter/Bottom Applied", shooterRightBottomMotor.getAppliedOutput());
-    
+
     SmartDashboard.putNumber("Shooter/Top Left RPM", shooterLeftTopRPM);
-    SmartDashboard.putNumber("Shooter/Top Right RPM",  shooterRightTopRPM);
+    SmartDashboard.putNumber("Shooter/Top Right RPM", shooterRightTopRPM);
     reportPowerUsage(getName(), getTotalCurrent(), getTotalVoltage());
-          }
-        
-          private double getTotalVoltage() {
-        double total = 0;
-        total += shooterLeftTopMotor.getAppliedOutput() * shooterLeftTopMotor.getBusVoltage();
-        total += shooterRightTopMotor.getAppliedOutput() * shooterRightTopMotor.getBusVoltage();
-        total += shooterLeftBottomMotor.getAppliedOutput() * shooterLeftBottomMotor.getBusVoltage();
-        total += shooterRightBottomMotor.getAppliedOutput() * shooterRightBottomMotor.getBusVoltage();
-        total += ((shooterBittyBottomMotor == null) ? 0 : shooterBittyBottomMotor.getAppliedOutput() * shooterBittyBottomMotor.getBusVoltage());
+  }
 
-        return shooterBittyBottomMotor == null ? 4 : 5;
-      }
+  private double getTotalVoltage() {
+    double total = 0;
+    total += shooterLeftTopMotor.getAppliedOutput() * shooterLeftTopMotor.getBusVoltage();
+    total += shooterRightTopMotor.getAppliedOutput() * shooterRightTopMotor.getBusVoltage();
+    total += shooterLeftBottomMotor.getAppliedOutput() * shooterLeftBottomMotor.getBusVoltage();
+    total += shooterRightBottomMotor.getAppliedOutput() * shooterRightBottomMotor.getBusVoltage();
+    total += ((shooterTransferMotor == null) ? 0 : shooterTransferMotor.getAppliedOutput() * shooterTransferMotor.getBusVoltage());
 
-          private double getTotalCurrent() {
-        return shooterRightTopMotor.getOutputCurrent() 
+    return shooterTransferMotor == null ? 4 : 5;
+  }
+
+  private double getTotalCurrent() {
+    return shooterRightTopMotor.getOutputCurrent()
         + shooterLeftTopMotor.getOutputCurrent()
         + shooterRightBottomMotor.getOutputCurrent()
         + shooterLeftBottomMotor.getOutputCurrent()
-        + ((shooterBittyBottomMotor == null) ? 0 : shooterBittyBottomMotor.getOutputCurrent()); 
-      }
-    
-      @Override
+        + ((shooterTransferMotor == null) ? 0 : shooterTransferMotor.getOutputCurrent());
+  }
+
+  @Override
   protected Command systemCheckCommand() {
     throw new UnsupportedOperationException("Unimplemented method 'systemCheckCommand'");
   }
 
-      @Override
-      public void setPowerLimit(double limit) {
-        this.powerLimit = limit;
-      }
+  @Override
+  public void setPowerLimit(double limit) {
+    this.powerLimit = limit;
+  }
 }

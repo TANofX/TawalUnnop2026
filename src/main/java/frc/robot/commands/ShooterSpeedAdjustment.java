@@ -56,7 +56,7 @@ public class ShooterSpeedAdjustment extends Command {
 
   @Override
   public void end(boolean interuppted) {
-    shooter.stopShooterMotors();
+    shooter.stopMotors();
   }
   @Override
   public void execute() {

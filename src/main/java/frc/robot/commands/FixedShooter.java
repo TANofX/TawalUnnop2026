@@ -39,7 +39,7 @@ public class FixedShooter extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    theShooter.stopShooterMotors();
+    theShooter.stopMotors();
   }
 
   // Returns true when the command should end.

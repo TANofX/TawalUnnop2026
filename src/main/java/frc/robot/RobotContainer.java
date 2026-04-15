@@ -35,21 +35,17 @@ import frc.lib.swerve.TunerConstants;
 import frc.lib.util.DriveModes;
 import frc.lib.util.DriveModes.Modes;
 import frc.lib.util.RobotLogger;
-import frc.robot.commands.CalibrateTurret;
-import frc.robot.commands.DefaultTurretCommand;
 import frc.robot.commands.FixedShooter;
-import frc.robot.commands.BumpPosition;
-import frc.robot.commands.TrenchPosition;
 import frc.robot.commands.ShootWithIndexer;
 import frc.robot.commands.ShooterSpeedAdjustment;
-import frc.robot.commands.ZeroTurret;
+import frc.robot.commands.ShooterCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.PowerManagement;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Turret;
+// import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
 
 public class RobotContainer {
@@ -97,8 +93,8 @@ public class RobotContainer {
       Constants.Shooter.TOP_LEFT_SHOOTER_ID,
       Constants.Shooter.BOTTOM_LEFT_SHOOTER_ID,
       Constants.Shooter.TOP_RIGHT_SHOOTER_ID,
-      Constants.Shooter.BOTTOM_RIGHT_SHOOTER_ID);
-      // Constants.Shooter.BITTY_SHOOTER_ID);
+      Constants.Shooter.BOTTOM_RIGHT_SHOOTER_ID,
+      Constants.Shooter.TRANSFER_SHOOTER_ID);
 
   public static final FireControl fireControl = new FireControl(
       () -> {
@@ -125,7 +121,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureButtonBindings();
     // Register Named PathPlanner Commands
-    NamedCommands.registerCommand("Shoot",shootTestFuelCommand());
+    NamedCommands.registerCommand("Shoot", new ShooterCommand(shooter, 2750.0, 2750.0/2));
     NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     NamedCommands.registerCommand("Intake Push", intakePushFuel());
     NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
@@ -172,7 +168,7 @@ public class RobotContainer {
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    driver.RT().whileTrue(shootTestFuelCommand());
+    driver.RT().whileTrue(new ShooterCommand(shooter, 2750.0, 2750.0/2));
     driver.LB().whileTrue(intakePushFuel());
     driver.Y().whileTrue(intake.putUpIntake());
     driver.A().whileTrue(indexer.shootFuel());
@@ -208,16 +204,16 @@ public class RobotContainer {
 
   private Command CreateFixedShooterCommand(java.util.function.Supplier<Rotation2d> turretAngle, DoubleSupplier targetRPM) {
     return Commands.sequence(
-        new FixedShooter(shooter, targetRPM, turretAngle).finallyDo(() -> shooter.stopShooterMotors()));
+        new FixedShooter(shooter, targetRPM, turretAngle).finallyDo(() -> shooter.stopMotors()));
   }
 
-  private Command shootTestFuelCommand() {
-    return Commands.run(
-        () -> {
-          double rpm = 2750; // test value
-          shooter.setShooterRPM(rpm);
-        }, shooter).finallyDo(() -> shooter.stopShooterMotors());
-}
+//   private Command shooterCommand() {
+//     return Commands.run(
+//         () -> {
+//           double rpm = 2750; // test value
+//           shooter.setShooterRPM(rpm);
+//         }, shooter).finallyDo(() -> shooter.stopMotors());
+// }
 
   public Command intakePushFuel() {
     return intake.run(() -> {
