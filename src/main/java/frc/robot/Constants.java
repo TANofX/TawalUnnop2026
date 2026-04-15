@@ -102,31 +102,34 @@ public final class Constants {
       new Translation2d(Units.inchesToMeters(205.61 + 13.0), Units.inchesToMeters(267.85)));
   // Bump Field Constants manipulated to work with 45 degree robot lock^^ (keep when merging branches plz)
   
+  // Red hub position
   public static final Pose2d HUB_RED = new Pose2d(apriltagLayout.getTagPose(5).get().getMeasureX(),
       apriltagLayout.getTagPose(9).get().getMeasureY(), new Rotation2d(0.0));
-
+  // Blue hub position
       public static final Pose2d HUB_BLUE = new Pose2d(apriltagLayout.getTagPose(18).get().getMeasureX(),
       apriltagLayout.getTagPose(26).get().getMeasureY(), new Rotation2d(0.0));
-
+  
+  // Left side of field (from red side)
   public static final Pose2d RED_FEED_TOP = new Pose2d(
       apriltagLayout.getTagPose(7).get().getMeasureX().plus(X_CLEAR_OFFSET),
       apriltagLayout.getTagPose(7).get().getMeasureY().plus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
-
-      public static final Pose2d RED_FEED_BOT = new Pose2d(
+  // Right side of field (from red side)
+  public static final Pose2d RED_FEED_BOT = new Pose2d(
       apriltagLayout.getTagPose(12).get().getMeasureX().plus(X_CLEAR_OFFSET),
       apriltagLayout.getTagPose(12).get().getMeasureY().minus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
-
+  // Right side of field (from blue side)
   public static final Pose2d BLUE_FEED_TOP = new Pose2d(
       apriltagLayout.getTagPose(28).get().getMeasureX().minus(X_CLEAR_OFFSET),
       apriltagLayout.getTagPose(28).get().getMeasureY().plus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
-
+  // Left side of field (from blue side)
   public static final Pose2d BLUE_FEED_BOT = new Pose2d(
       apriltagLayout.getTagPose(23).get().getMeasureX().minus(X_CLEAR_OFFSET),
       apriltagLayout.getTagPose(23).get().getMeasureY().minus(Y_CLEAR_OFFSET), new Rotation2d(0.0));
 
+  // 2d rectangle that represents where the robot where point at hubs
   public static final Rectangle2d BLUE_ALLIANCE_ZONE = new Rectangle2d(new Translation2d(0.0, 0.0),
       new Translation2d(Units.inchesToMeters(182.11), Units.inchesToMeters(317.69)));
-  
+
   public static final Rectangle2d RED_ALLIANCE_ZONE = new Rectangle2d(
       new Translation2d(Units.inchesToMeters(469.11), 0.0),
       new Translation2d(Units.inchesToMeters(651.22), Units.inchesToMeters(317.69)));
