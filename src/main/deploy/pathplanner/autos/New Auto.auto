@@ -11,10 +11,22 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": null
+                  "pathName": "Mid Start to Mid Shoot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 5.0
           }
         }
       ]
