@@ -26,7 +26,7 @@ public class ShooterSpeedAdjustment extends Command {
   public void initialize() {
     baseKey = shooter.getName();
     done = false;
-    targetRPM = 2000;
+    targetRPM = 3300;
     shooter.setShooterRPM(targetRPM);
     shooter.setTransferRPM(targetRPM);
 

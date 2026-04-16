@@ -53,6 +53,7 @@ public class Shooter extends AdvancedSubsystem {
   private TalonFXConfiguration shooterTransferConfig;
   private boolean hardwareFollowConfigured = false;
   private double topTargetRPM = 0.0;
+  private double bottomTargetRPM = 0.0;
 
   // RECOVERY TRACKING STUFF
 
@@ -80,6 +81,12 @@ public class Shooter extends AdvancedSubsystem {
     shooterTransferConfig = new TalonFXConfiguration();
     shooterTransferConfig.withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast).withInverted(InvertedValue.Clockwise_Positive));
     shooterTransferConfig.withSlot0(new Slot0Configs().withKP(Constants.Shooter.TRANSFER_BOTTOM_P).withKI(0.0).withKD(0.0).withKS(Constants.Shooter.TRANSFER_kS).withKV(Constants.Shooter.TRANSFER_kV).withKA(Constants.Shooter.TRANSFER_kA));
+    shooterTransferConfig.CurrentLimits.withStatorCurrentLimit(100);
+    shooterTransferConfig.CurrentLimits.withSupplyCurrentLowerTime(1);
+    shooterTransferConfig.CurrentLimits.withSupplyCurrentLimit(70);
+    shooterTransferConfig.CurrentLimits.withSupplyCurrentLowerLimit(38);
+    shooterTransferConfig.CurrentLimits.withSupplyCurrentLimitEnable(true);
+    shooterTransferConfig.CurrentLimits.withStatorCurrentLimitEnable(true);
     shooterTransferMotor.getConfigurator().apply(shooterTransferConfig);
   }
 
@@ -186,7 +193,8 @@ public class Shooter extends AdvancedSubsystem {
   }
 
   public void setTransferRPM(double rpm) {
-    shooterTransferMotor.setControl(new VelocityVoltage(rpm * 60));
+    bottomTargetRPM = rpm;
+    shooterTransferMotor.setControl(new VelocityVoltage(bottomTargetRPM * 60.0));
   }
   public double getTopSetpoint() {
     return shooterLeftController.getSetpoint();
@@ -274,7 +282,7 @@ public class Shooter extends AdvancedSubsystem {
     shooterRightTopMotor.set(shooterLeftTopMotor.getAppliedOutput());
 
     double topRPM = shooterLeftTopEncoder.getVelocity();
-    double bottomRPM = shooterLeftBottomEncoder.getVelocity();
+    double bottomRPM = shooterTransferMotor.getVelocity(true).getValueAsDouble() / 60.0;
     double shooterLeftTopRPM = shooterLeftTopEncoder.getVelocity();
     double shooterRightTopRPM = shooterRightTopEncoder.getVelocity();
 
@@ -300,7 +308,7 @@ public class Shooter extends AdvancedSubsystem {
 
     // Display current velocities
     SmartDashboard.putNumber("Shooter/Top Target RPM", topTargetRPM);
-    SmartDashboard.putNumber("Shooter/Bottom Target RPM", topTargetRPM);
+    SmartDashboard.putNumber("Shooter/Bottom Target RPM", bottomTargetRPM);
     SmartDashboard.putNumber("Shooter/Top RPM", topRPM);
     SmartDashboard.putNumber("Shooter/Bottom RPM", bottomRPM);
     SmartDashboard.putNumber("Shooter/Transfer RPM", getTransferRPM());

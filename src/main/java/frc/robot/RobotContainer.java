@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.security.CodeSigner;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -36,8 +37,8 @@ import frc.lib.util.DriveModes.Modes;
 import frc.lib.util.RobotLogger;
 import frc.robot.commands.FixedShooter;
 import frc.robot.commands.ShootWithIndexer;
-import frc.robot.commands.ShooterSpeedAdjustment;
 import frc.robot.commands.ShooterCommand;
+import frc.robot.commands.ShooterSpeedAdjustment;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FireControl;
 import frc.robot.subsystems.Indexer;
@@ -120,7 +121,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureButtonBindings();
     // Register Named PathPlanner Commands
-    NamedCommands.registerCommand("Shoot", new ShooterCommand(shooter, 2750.0));
+    NamedCommands.registerCommand("Shoot", new ShooterCommand(shooter, 3300.0));
     NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     NamedCommands.registerCommand("Intake Push", intakePushFuel());
     NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
@@ -139,9 +140,9 @@ public class RobotContainer {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    // vision.addCamera("heart", Constants.Vision.robotToHeart);
-    // vision.addCamera("club", Constants.Vision.robotToClub);
-    // vision.addCamera("diamond", Constants.Vision.robotToDiamond);
+    vision.addCamera("heart", Constants.Vision.robotToHeart);
+    vision.addCamera("club", Constants.Vision.robotToClub);
+    vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
 
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
@@ -168,36 +169,47 @@ public class RobotContainer {
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    driver.RT().whileTrue(new ShooterCommand(shooter, 2750.0));
+    // driver.RT().whileTrue(new ShooterCommand(shooter, 2950.0));
+
+    driver.RT().onTrue(Commands.sequence(Commands.runOnce(() -> driveMode.setMode(Modes.TESTING)), shooterAdjust));
+    driver.RT().onFalse(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust()), Commands.runOnce(() -> driveMode.setMode(Modes.NORMAL_JOYSTICK))));
     driver.LB().whileTrue(intakePushFuel());
-    driver.Y().whileTrue(intake.putUpIntake());
-    driver.A().whileTrue(indexer.shootFuel());
-    coDriver.DUp().whileTrue(intakePushFuel());
-    coDriver.DDown().whileTrue(manualIntakeDownCommand());
-    coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
-    coDriver.RB().whileTrue(Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
-    coDriver.RT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    driver.X().onTrue(Commands.runOnce(() -> indexer.stopIndexer(), indexer));
-    // Set positions to shoot from if autos fail
-    coDriver.A().whileTrue(CreateFixedShooterCommand(() -> rightClimbAngle, () -> rightClimbRPM));
-    coDriver.B().whileTrue(CreateFixedShooterCommand(() -> rightTrenchAngle, () -> rightTrenchRPM));
-    coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
-    coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
+    // driver.Y().whileTrue(intake.putUpIntake());
+    // driver.A().whileTrue(indexer.shootFuel());
     
-    logController.DUp().onTrue(
+    coDriver.B().whileTrue(intakePushFuel());
+    coDriver.A().whileTrue(manualIntakeDownCommand());
+    coDriver.X().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
+    coDriver.DUp().onTrue(
     Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
     );
-
-
-    logController.DDown().onTrue(
+    coDriver.DDown().onTrue(
         Commands.runOnce(() -> shooterAdjust.adjustRPM(-shooterAdjust.getIncrement()))
     );
 
-    logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
-    logController.B().onTrue(Commands.sequence(Commands.runOnce(() -> driveMode.setMode(Modes.TESTING)), shooterAdjust));
-    logController.Y().onTrue(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust()), Commands.runOnce(() -> driveMode.setMode(Modes.NORMAL_JOYSTICK))));
-    logController.DLeft().onTrue(Commands.runOnce(() -> driveMode.setTestingTargetOffset(-10.0), vision));
-    logController.DRight().onTrue(Commands.runOnce(() -> driveMode.setTestingTargetOffset(10.0), vision));
+    coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
+    coDriver.RT().whileTrue(Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
+    
+    // coDriver.RT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+    // Set positions to shoot from if autos fail
+    // coDriver.A().whileTrue(CreateFixedShooterCommand(() -> rightClimbAngle, () -> rightClimbRPM));
+    // coDriver.B().whileTrue(CreateFixedShooterCommand(() -> rightTrenchAngle, () -> rightTrenchRPM));
+    // coDriver.X().whileTrue(CreateFixedShooterCommand(() -> leftTrenchAngle, () -> leftTrenchRPM));
+    // coDriver.Y().whileTrue(CreateFixedShooterCommand(() -> leftClimbAngle,() -> leftClimbRPM));
+    
+    // logController.DUp().onTrue(
+    // Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
+    // );
+
+    // logController.DDown().onTrue(
+    //     Commands.runOnce(() -> shooterAdjust.adjustRPM(-shooterAdjust.getIncrement()))
+    // );
+
+    // logController.A().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
+    // logController.B().onTrue(Commands.sequence(Commands.runOnce(() -> driveMode.setMode(Modes.TESTING)), shooterAdjust));
+    // logController.Y().onTrue(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust()), Commands.runOnce(() -> driveMode.setMode(Modes.NORMAL_JOYSTICK))));
+    // logController.DLeft().onTrue(Commands.runOnce(() -> driveMode.setTestingTargetOffset(-10.0), vision));
+    // logController.DRight().onTrue(Commands.runOnce(() -> driveMode.setTestingTargetOffset(10.0), vision));
     
     drivetrain.registerTelemetry(logger::telemeterize);
   }

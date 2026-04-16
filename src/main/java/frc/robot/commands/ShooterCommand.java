@@ -28,9 +28,7 @@ public class ShooterCommand extends Command {
   @Override
   public void execute() {
     shooter.setShooterRPM(rpm);
-    if (shooter.shooterAtSpeed()) {
-      shooter.setTransferRPM(rpm);
-    }
+    shooter.setTransferRPM(rpm);
   }
 
   // Called once the command ends or is interrupted.

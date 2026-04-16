@@ -330,7 +330,7 @@ public final class Constants {
     public static final double TRANSFER_BOTTOM_I = 0.0;
     public static final double TRANSFER_BOTTOM_D = 0.0;
     
-    public static final double shooterMotorTolerance = 75.0;
+    public static final double shooterMotorTolerance = 50.0;
     public static final int SHOOTER_CURRENT_STALL_LIMIT = 30;
     public static final int SHOOTER_CURRENT_FREE_LIMIT = 80;
     public static final double SHOOTER_VOLTAGE_LIMIT = 10.0;
