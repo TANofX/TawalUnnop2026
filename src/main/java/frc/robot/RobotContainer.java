@@ -124,7 +124,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     NamedCommands.registerCommand("Intake Push", intakePushFuel());
     NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
-    NamedCommands.registerCommand("Jostle", manualIntakeDownCommand());
+    //NamedCommands.registerCommand("Jostle", manualIntakeDownCommand());
+    NamedCommands.registerCommand("Auto Jostle", autoJostleCommand()); //maybe use for regular shooting
 
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
@@ -233,6 +234,20 @@ public class RobotContainer {
       intake.stopIntake();
     });
   }
+
+  public Command autoJostleCommand() {
+    return Commands.sequence(intakePushFuel().withTimeout(0.2),
+     manualIntakeDownCommand().withTimeout(0.5), 
+     intakePushFuel().withTimeout(0.2),
+     manualIntakeDownCommand().withTimeout(0.5),
+     intakePushFuel().withTimeout(0.5),
+     manualIntakeDownCommand().withTimeout(0.75),
+     intakePushFuel().withTimeout(0.75),
+     manualIntakeDownCommand().withTimeout(1.0),
+     intakePushFuel().withTimeout(2.0));
+     
+  }
+
 
   // public Command leftBumpAutoCommand() {
   //   double rpm = 2300;
