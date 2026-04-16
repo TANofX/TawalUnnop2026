@@ -61,7 +61,7 @@
     "rotation": -178.60310810074625
   },
   "reversed": false,
-  "folder": null,
+  "folder": "vision calibration",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

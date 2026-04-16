@@ -7,7 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Example Path"
+            "pathName": "Mid Start to Mid Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Auto Jostle"
           }
         }
       ]
