@@ -245,7 +245,6 @@ public class RobotContainer {
      intakePushFuel().withTimeout(0.75),
      manualIntakeDownCommand().withTimeout(1.0),
      intakePushFuel().withTimeout(2.0));
-     
   }
 
 
