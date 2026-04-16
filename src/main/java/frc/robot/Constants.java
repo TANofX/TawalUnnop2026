@@ -203,7 +203,7 @@ public final class Constants {
                                                         );
 
     public static final Matrix<N3, N1> singleTagStdDevs = VecBuilder.fill(0.5, 0.5, 999999.0); // TODO emperically tune Single Tag StdDevs
-    public static final Matrix<N3, N1> multiTagStdDevs = VecBuilder.fill(0.005, 0.005, 999999.0); // TODO emperically tune Multi Tag StdDevs
+    public static final Matrix<N3, N1> multiTagStdDevs = VecBuilder.fill(0.005, 0.005, 1.0); // TODO emperically tune Multi Tag StdDevs
   }
 
   public static final class Intake {

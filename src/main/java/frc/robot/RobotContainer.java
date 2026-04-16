@@ -143,7 +143,7 @@ public class RobotContainer {
 
     // vision.addCamera("heart", Constants.Vision.robotToHeart);
     vision.addCamera("club", Constants.Vision.robotToClub);
-    vision.addCamera("diamond", Constants.Vision.robotToDiamond);
+    //vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
 
     CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
