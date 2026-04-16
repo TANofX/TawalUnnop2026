@@ -16,6 +16,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -75,10 +76,10 @@ public class RobotContainer {
   public static final Supplier<Pose2d> robotPose = () -> drivetrain.getState().Pose;
   public static final Vision vision = new Vision(
       (visionPose, timestamp, stdDevs) -> {
-        // drivetrain.addVisionMeasurement(
-        //     visionPose,
-        //     timestamp,
-        //     VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
+        drivetrain.addVisionMeasurement(
+            visionPose,
+            timestamp,
+            VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
       }, robotPose);
 
   public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
@@ -140,7 +141,7 @@ public class RobotContainer {
       drivetrain.resetPose(Pose2d.kZero);
     }, drivetrain));
 
-    vision.addCamera("heart", Constants.Vision.robotToHeart);
+    // vision.addCamera("heart", Constants.Vision.robotToHeart);
     vision.addCamera("club", Constants.Vision.robotToClub);
     vision.addCamera("diamond", Constants.Vision.robotToDiamond);
     // vision.addCamera("spade", Constants.Vision.robotToSpade);
