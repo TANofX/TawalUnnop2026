@@ -106,7 +106,7 @@ public class Intake extends AdvancedSubsystem {
 
     liftMotorConfig = new SparkFlexConfig();
     liftMotorConfig
-        .idleMode(IdleMode.kBrake)
+        .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(Constants.Intake.CURRENT_LIMIT)
         .voltageCompensation(Constants.Intake.VOLTAGE_LIMIT)
         .inverted(true)
@@ -172,6 +172,14 @@ public class Intake extends AdvancedSubsystem {
 
   public void raiseIntake() {
     liftMotor.set(intakeLiftSpeed * -1);
+  }
+
+  public void fastRaiseIntake() {
+    liftMotor.set(intakeLiftSpeed * 2.0 * -1);
+  }
+
+  public void fastLowerIntake() {
+    liftMotor.set(intakeLiftSpeed * 2.0);
   }
 
   public void intakeForward() {

@@ -7,7 +7,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import java.security.CodeSigner;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -172,14 +171,15 @@ public class RobotContainer {
     driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     // driver.RT().whileTrue(new ShooterCommand(shooter, 2950.0));
 
-    driver.RT().onTrue(Commands.sequence(Commands.runOnce(() -> driveMode.setMode(Modes.TESTING)), shooterAdjust));
-    driver.RT().onFalse(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust()), Commands.runOnce(() -> driveMode.setMode(Modes.NORMAL_JOYSTICK))));
+    driver.RT().onTrue(Commands.sequence(shooterAdjust));
+    driver.RT().onFalse(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust())));
     driver.LB().whileTrue(intakePushFuel());
     // driver.Y().whileTrue(intake.putUpIntake());
     // driver.A().whileTrue(indexer.shootFuel());
     
     coDriver.B().whileTrue(intakePushFuel());
     coDriver.A().whileTrue(manualIntakeDownCommand());
+    coDriver.Y().whileTrue(autoJostleCommand());
     coDriver.X().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
     coDriver.DUp().onTrue(
     Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
@@ -240,7 +240,7 @@ public class RobotContainer {
 
   public Command manualIntakeDownCommand() {
     return intake.run(() -> {
-      intake.lowerIntakeManually();
+      intake.lowerIntake();
       intake.intakeToJostle();
     }).finallyDo(() -> {
       intake.stopLift();
@@ -248,16 +248,36 @@ public class RobotContainer {
     });
   }
 
+  public Command fastIntakeDownJostle() {
+    return intake.run(() -> {
+      intake.fastLowerIntake();
+      intake.intakeToJostle();
+    }).finallyDo(() -> {
+      intake.stopLift();
+      intake.stopIntake();
+    });
+  }
+
+  public Command fastIntakeUpJostle() {
+    return intake.run(() -> {
+      intake.fastRaiseIntake();
+      intake.intakeToJostle();
+    }).finallyDo((() -> {
+      intake.stopIntake();
+      intake.stopLift();
+    }));
+  }  
+
   public Command autoJostleCommand() {
-    return Commands.sequence(intakePushFuel().withTimeout(0.2),
-     manualIntakeDownCommand().withTimeout(0.5), 
-     intakePushFuel().withTimeout(0.2),
-     manualIntakeDownCommand().withTimeout(0.5),
-     intakePushFuel().withTimeout(0.5),
-     manualIntakeDownCommand().withTimeout(0.75),
-     intakePushFuel().withTimeout(0.75),
-     manualIntakeDownCommand().withTimeout(1.0),
-     intakePushFuel().withTimeout(2.0));
+    return Commands.sequence(Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+     Commands.waitSeconds(0.175).deadlineFor(fastIntakeDownJostle()), 
+     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+     Commands.waitSeconds(0.15).deadlineFor(fastIntakeDownJostle()),
+     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+     Commands.waitSeconds(0.125).deadlineFor(fastIntakeDownJostle()),
+     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+     Commands.waitSeconds(0.0625).deadlineFor(fastIntakeDownJostle()),
+     Commands.waitSeconds(4.0).deadlineFor(intakePushFuel()));
   }
 
 

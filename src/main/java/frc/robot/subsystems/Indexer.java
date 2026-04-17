@@ -94,15 +94,19 @@ public class Indexer extends AdvancedSubsystem {
   }
 
   public void indexerForward() {
-    indexerMotorController.setSetpoint(1000, ControlType.kVelocity);
+    indexerMotorController.setSetpoint(2000, ControlType.kVelocity);
     agitatorMotorController.setSetpoint(1000, ControlType.kVelocity);
   }
 
   public void indexerBackward() {
-    indexerMotorController.setSetpoint(-1000, ControlType.kVelocity);
+    indexerMotorController.setSetpoint(-2000, ControlType.kVelocity);
     agitatorMotorController.setSetpoint(-1000, ControlType.kVelocity);
   }
 
+  public void indexerRollBackward() {
+    indexerMotorController.setSetpoint(-2000, ControlType.kVelocity);
+  }
+  
   public void stopIndexer() {
     indexerMotor.stopMotor();
     agitatorMotor.stopMotor();

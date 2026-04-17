@@ -180,7 +180,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
-        
+
     SmartDashboard.putNumber("Pigeon", getPigeon2().getYaw().getValueAsDouble());
         /*
          * Periodically try to apply the operator perspective.
