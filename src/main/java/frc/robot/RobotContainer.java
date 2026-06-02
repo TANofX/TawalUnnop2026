@@ -269,14 +269,15 @@ public class RobotContainer {
   }  
 
   public Command autoJostleCommand() {
-    return Commands.sequence(Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+    return Commands.sequence(
+     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
      Commands.waitSeconds(0.175).deadlineFor(fastIntakeDownJostle()), 
      Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
      Commands.waitSeconds(0.15).deadlineFor(fastIntakeDownJostle()),
      Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
      Commands.waitSeconds(0.125).deadlineFor(fastIntakeDownJostle()),
      Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
-     Commands.waitSeconds(0.0625).deadlineFor(fastIntakeDownJostle()),
+     Commands.waitSeconds(0.2).deadlineFor(fastIntakeDownJostle()),
      Commands.waitSeconds(4.0).deadlineFor(intakePushFuel()));
   }
 

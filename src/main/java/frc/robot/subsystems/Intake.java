@@ -187,7 +187,7 @@ public class Intake extends AdvancedSubsystem {
     //intakeMotor.set(intakeSpeed * powerLimit * -1);
   }
   public void raiseIntakeToJostle() {
-    liftMotor.set(-0.1);
+    liftMotor.set(-intakeLiftSpeed);
   }
   public void intakeToJostle() {
     leftIntakeMotor.getClosedLoopController().setSetpoint(Constants.Intake.INTAKE_RPM * -0.25, ControlType.kVelocity);
