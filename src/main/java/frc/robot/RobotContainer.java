@@ -65,7 +65,7 @@ public class RobotContainer {
   public static final XboxControllerWrapper logController = new XboxControllerWrapper(2,0.1);
 
   private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-  private double MaxAngularRate = RotationsPerSecond.of(0.5).in(RotationsPerSecond); // 1/2 of a rotation per second max angular velocity
+  private double MaxAngularRate = RotationsPerSecond.of(5).in(RotationsPerSecond); // 1/2 of a rotation per second max angular velocity
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -81,8 +81,8 @@ public class RobotContainer {
             VecBuilder.fill(stdDevs.get(0, 0), stdDevs.get(1, 0), stdDevs.get(2, 0)));
       }, robotPose);
 
-  public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
-      Constants.Intake.LEFT_INTAKE_MOTOR_ID, Constants.Intake.RIGHT_INTAKE_MOTOR_ID);
+  // public static final Intake intake = new Intake(Constants.Intake.INTAKE_LIFT_MOTOR_ID,
+  //     Constants.Intake.LEFT_INTAKE_MOTOR_ID, Constants.Intake.RIGHT_INTAKE_MOTOR_ID);
 
   public static final Indexer indexer = new Indexer(Constants.Indexer.INDEXER_MOTOR_ID, Constants.Indexer.AGITATOR_MOTOR_ID);
 
@@ -122,18 +122,18 @@ public class RobotContainer {
     configureButtonBindings();
     // Register Named PathPlanner Commands
     NamedCommands.registerCommand("Shoot", new ShooterCommand(shooter, 3300.0));
-    NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
-    NamedCommands.registerCommand("Intake Push", intakePushFuel());
-    NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
+    // NamedCommands.registerCommand("Collect Fuel", Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+    // NamedCommands.registerCommand("Intake Push", intakePushFuel());
+    // NamedCommands.registerCommand("Extake", Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
     //NamedCommands.registerCommand("Jostle", manualIntakeDownCommand());
-    NamedCommands.registerCommand("Auto Jostle", autoJostleCommand()); //maybe use for regular shooting
+    // NamedCommands.registerCommand("Auto Jostle", autoJostleCommand()); //maybe use for regular shooting
 
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Mode", autoChooser);
     
     powerManagement.addSubsystem(shooter);
     powerManagement.addSubsystem(indexer);
-    powerManagement.addSubsystem(intake);
+    // powerManagement.addSubsystem(intake);
     // powerManagement.addSubsystem(turret);
 
     SmartDashboard.putData("Reset Position", Commands.runOnce(() -> {
@@ -168,18 +168,18 @@ public class RobotContainer {
     RobotModeTriggers.disabled().whileTrue(
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-    driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
+    // driver.LT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     // driver.RT().whileTrue(new ShooterCommand(shooter, 2950.0));
 
     driver.RT().onTrue(Commands.sequence(shooterAdjust));
     driver.RT().onFalse(Commands.sequence(Commands.runOnce(() -> shooterAdjust.cancelShooterAdjust())));
-    driver.LB().whileTrue(intakePushFuel());
+    // driver.LB().whileTrue(intakePushFuel());
     // driver.Y().whileTrue(intake.putUpIntake());
     // driver.A().whileTrue(indexer.shootFuel());
     
-    coDriver.B().whileTrue(intakePushFuel());
-    coDriver.A().whileTrue(manualIntakeDownCommand());
-    coDriver.Y().whileTrue(autoJostleCommand());
+    // coDriver.B().whileTrue(intakePushFuel());
+    // coDriver.A().whileTrue(manualIntakeDownCommand());
+    // coDriver.Y().whileTrue(autoJostleCommand());
     coDriver.X().onTrue(Commands.runOnce(() -> {robotLogger.logSnapshot();}));
     coDriver.DUp().onTrue(
     Commands.runOnce(() -> shooterAdjust.adjustRPM(shooterAdjust.getIncrement()))
@@ -189,7 +189,7 @@ public class RobotContainer {
     );
 
     coDriver.LT().whileTrue(Commands.startEnd(() -> indexer.indexerBackward(), () -> indexer.stopIndexer(), indexer));
-    coDriver.RT().whileTrue(Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
+    // coDriver.RT().whileTrue(Commands.startEnd(() -> intake.intakeBackward(), () -> intake.stopIntake(), intake));
     
     // coDriver.RT().whileTrue(Commands.sequence(intake.putDownIntake(), intake.intakeFuel()));
     // Set positions to shoot from if autos fail
@@ -228,58 +228,58 @@ public class RobotContainer {
 //         }, shooter).finallyDo(() -> shooter.stopMotors());
 // }
 
-  public Command intakePushFuel() {
-    return intake.run(() -> {
-      intake.raiseIntakeToJostle();
-      intake.intakeToJostle();
-    }).finallyDo((() -> {
-      intake.stopIntake();
-      intake.stopLift();
-    }));
-  }
+  // public Command intakePushFuel() {
+  //   return intake.run(() -> {
+  //     intake.raiseIntakeToJostle();
+  //     intake.intakeToJostle();
+  //   }).finallyDo((() -> {
+  //     intake.stopIntake();
+  //     intake.stopLift();
+  //   }));
+  // }
 
-  public Command manualIntakeDownCommand() {
-    return intake.run(() -> {
-      intake.lowerIntake();
-      intake.intakeToJostle();
-    }).finallyDo(() -> {
-      intake.stopLift();
-      intake.stopIntake();
-    });
-  }
+  // public Command manualIntakeDownCommand() {
+  //   return intake.run(() -> {
+  //     intake.lowerIntake();
+  //     intake.intakeToJostle();
+  //   }).finallyDo(() -> {
+  //     intake.stopLift();
+  //     intake.stopIntake();
+  //   });
+  // }
 
-  public Command fastIntakeDownJostle() {
-    return intake.run(() -> {
-      intake.fastLowerIntake();
-      intake.intakeToJostle();
-    }).finallyDo(() -> {
-      intake.stopLift();
-      intake.stopIntake();
-    });
-  }
+  // public Command fastIntakeDownJostle() {
+  //   return intake.run(() -> {
+  //     intake.fastLowerIntake();
+  //     intake.intakeToJostle();
+  //   }).finallyDo(() -> {
+  //     intake.stopLift();
+  //     intake.stopIntake();
+  //   });
+  // }
 
-  public Command fastIntakeUpJostle() {
-    return intake.run(() -> {
-      intake.fastRaiseIntake();
-      intake.intakeToJostle();
-    }).finallyDo((() -> {
-      intake.stopIntake();
-      intake.stopLift();
-    }));
-  }  
+  // public Command fastIntakeUpJostle() {
+  //   return intake.run(() -> {
+  //     intake.fastRaiseIntake();
+  //     intake.intakeToJostle();
+  //   }).finallyDo((() -> {
+  //     intake.stopIntake();
+  //     intake.stopLift();
+  //   }));
+  // }  
 
-  public Command autoJostleCommand() {
-    return Commands.sequence(
-     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
-     Commands.waitSeconds(0.175).deadlineFor(fastIntakeDownJostle()), 
-     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
-     Commands.waitSeconds(0.15).deadlineFor(fastIntakeDownJostle()),
-     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
-     Commands.waitSeconds(0.125).deadlineFor(fastIntakeDownJostle()),
-     Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
-     Commands.waitSeconds(0.2).deadlineFor(fastIntakeDownJostle()),
-     Commands.waitSeconds(4.0).deadlineFor(intakePushFuel()));
-  }
+  // public Command autoJostleCommand() {
+  //   return Commands.sequence(
+  //    Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+  //    Commands.waitSeconds(0.175).deadlineFor(fastIntakeDownJostle()), 
+  //    Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+  //    Commands.waitSeconds(0.15).deadlineFor(fastIntakeDownJostle()),
+  //    Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+  //    Commands.waitSeconds(0.125).deadlineFor(fastIntakeDownJostle()),
+  //    Commands.waitSeconds(0.2).deadlineFor(fastIntakeUpJostle()),
+  //    Commands.waitSeconds(0.2).deadlineFor(fastIntakeDownJostle()),
+  //    Commands.waitSeconds(4.0).deadlineFor(intakePushFuel()));
+  // }
 
 
   // public Command leftBumpAutoCommand() {
