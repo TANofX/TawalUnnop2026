@@ -65,7 +65,7 @@ public class RobotContainer {
   public static final XboxControllerWrapper logController = new XboxControllerWrapper(2,0.1);
 
   private double MaxSpeed = 0.75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+  private double MaxAngularRate = RotationsPerSecond.of(0.5).in(RotationsPerSecond); // 1/2 of a rotation per second max angular velocity
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
